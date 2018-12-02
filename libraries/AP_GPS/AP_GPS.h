@@ -62,6 +62,7 @@ class AP_GPS
     friend class AP_GPS_SIRF;
     friend class AP_GPS_UBLOX;
     friend class AP_GPS_Backend;
+    friend class AP_GPS_NAZA;
 
 public:
     AP_GPS();
@@ -90,7 +91,8 @@ public:
         GPS_TYPE_GSOF  = 11,
         GPS_TYPE_ERB = 13,
         GPS_TYPE_MAV = 14,
-        GPS_TYPE_NOVA = 15
+        GPS_TYPE_NOVA = 15,
+        GPS_TYPE_NAZA = 16
     };
 
     /// GPS status codes
@@ -424,6 +426,10 @@ public:
     void force_disable(bool disable) {
         _force_disable_gps = disable;
     }
+    
+    // get NAZA GPS mag
+    inline bool get_compass(Vector3f  mag) { mag=_mag; bool ret = !isnan(mag.x); mag.x = NAN; return ret;  }
+    inline bool has_compass() { return _has_compass; }
 
 protected:
 
@@ -448,6 +454,9 @@ protected:
     AP_Float _blend_tc;
 
     uint32_t _log_gps_bit = -1;
+    
+    //NAZA GPS mag update
+    inline void update_compass(Vector3f & mag) { _mag = mag; }
 
 private:
     static AP_GPS *_singleton;
@@ -566,6 +575,10 @@ private:
 
     // used for flight testing with GPS loss
     bool _force_disable_gps;
+    
+    // check NAZA GPS mag
+    Vector3f _mag;
+    bool _has_compass;
 };
 
 namespace AP {
