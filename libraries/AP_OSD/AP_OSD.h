@@ -20,6 +20,8 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_BLHeli/AP_BLHeli.h>
+#include <RC_Channel/RC_Channel.h>
+#include <AP_Param/AP_Param.h>
 
 #ifndef OSD_ENABLED
 #define OSD_ENABLED 0
@@ -27,7 +29,41 @@
 
 class AP_OSD_Backend;
 
-#define AP_OSD_NUM_SCREENS 4
+#define AP_OSD_NUM_DISPLAY_SCREENS 4
+#define AP_OSD_NUM_PARAM_SCREENS 2
+#define AP_OSD_NUM_SCREENS (AP_OSD_NUM_DISPLAY_SCREENS + AP_OSD_NUM_PARAM_SCREENS)
+
+#define SYM_M           0xB9
+#define SYM_KM          0xBA
+#define SYM_FT          0x0F
+#define SYM_MI          0xBB
+#define SYM_ALT_M       0xB1
+#define SYM_ALT_FT      0xB3
+#define SYM_BATT_FULL   0x90
+#define SYM_RSSI        0x01
+
+#define SYM_VOLT  0x06
+#define SYM_AMP   0x9A
+#define SYM_MAH   0x07
+#define SYM_MS    0x9F
+#define SYM_FS    0x99
+#define SYM_KMH   0xA1
+#define SYM_MPH   0xB0
+#define SYM_DEGR  0xA8
+#define SYM_PCNT  0x25
+#define SYM_RPM   0xE0
+#define SYM_ASPD  0xE1
+#define SYM_GSPD  0xE2
+#define SYM_WSPD  0xE3
+#define SYM_VSPD  0xE4
+#define SYM_WPNO  0xE5
+#define SYM_WPDIR  0xE6
+#define SYM_WPDST  0xE7
+#define SYM_FTMIN  0xE8
+#define SYM_FTSEC  0x99
+
+#define PARAM_INDEX(key, idx, group) (uint32_t(uint32_t(key) << 23 | uint32_t(idx) << 18 | uint32_t(group)))
+#define PARAM_TOKEN_INDEX(token) PARAM_INDEX(AP_Param::get_persistent_key(token.key), token.idx, token.group_element)
 
 /*
   class to hold one setting
@@ -47,30 +83,55 @@ public:
 
 class AP_OSD;
 
-/*
-  class to hold one screen of settings
- */
-class AP_OSD_Screen
+class AP_OSD_AbstractScreen
 {
 public:
     // constructor
-    AP_OSD_Screen();
+    AP_OSD_AbstractScreen() {}
 
-    void draw(void);
+    virtual void draw(void) = 0;
 
     void set_backend(AP_OSD_Backend *_backend);
-
-    // User settable parameters
-    static const struct AP_Param::GroupInfo var_info[];
 
     AP_Int8 enabled;
     AP_Int16 channel_min;
     AP_Int16 channel_max;
 
-private:
+protected:
+    bool check_option(uint32_t option);
+
+    enum unit_type {
+        ALTITUDE=0,
+        SPEED=1,
+        VSPEED=2,
+        DISTANCE=3,
+        DISTANCE_LONG=4,
+        TEMPERATURE=5,
+        UNIT_TYPE_LAST=6,
+    };
+
+    char u_icon(enum unit_type unit);
+    float u_scale(enum unit_type unit, float value);
+
     AP_OSD_Backend *backend;
     AP_OSD *osd;
+};
 
+/*
+  class to hold one screen of settings
+ */
+class AP_OSD_Screen : public AP_OSD_AbstractScreen
+{
+public:
+    // constructor
+    AP_OSD_Screen();
+
+    void draw(void) override;
+
+    // User settable parameters
+    static const struct AP_Param::GroupInfo var_info[];
+
+private:
     static const uint8_t message_visible_width = 26;
     static const uint8_t message_scroll_time_ms = 200;
     static const uint8_t message_scroll_delay = 5;
@@ -124,21 +185,6 @@ private:
     AP_OSD_Setting bat2used{false, 0, 0};
     AP_OSD_Setting clk{false, 0, 0};
 
-    bool check_option(uint32_t option);
-
-    enum unit_type {
-        ALTITUDE=0,
-        SPEED=1,
-        VSPEED=2,
-        DISTANCE=3,
-        DISTANCE_LONG=4,
-        TEMPERATURE=5,
-        UNIT_TYPE_LAST=6,
-    };
-
-    char u_icon(enum unit_type unit);
-    float u_scale(enum unit_type unit, float value);
-
     void draw_altitude(uint8_t x, uint8_t y);
     void draw_bat_volt(uint8_t x, uint8_t y);
     void draw_rssi(uint8_t x, uint8_t y);
@@ -190,10 +236,133 @@ private:
     void draw_clk(uint8_t x, uint8_t y);
 };
 
+/*
+  class to hold one setting
+ */
+class AP_OSD_ParamSetting : public AP_OSD_Setting
+{
+public:
+    // configured index.
+    AP_Int32 _param_group;
+    AP_Int16 _param_key;
+    AP_Int8  _param_idx;
+    AP_Float _param_min;
+    AP_Float _param_max;
+    AP_Float _param_incr;
+
+    // parameter number
+    uint8_t _param_number;
+    AP_Param* param;
+    ap_var_type _param_type;
+    AP_Param::ParamToken _current_token;
+    int16_t _metadata_index;
+
+    // structure to contain setting constraints for important settings
+    struct ParamMetadata {
+        uint32_t index;
+        float min_value;
+        float max_value;
+        float increment;
+        enum ParamType {
+            Scalar,
+            Bitmask,
+            StringValues
+        } type;
+        uint8_t values_max;
+        const char** values;
+    };
+
+    static const ParamMetadata _param_metadata[];
+
+    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, int16_t key, int8_t idx, int32_t group,
+        float min = 0.0f, float max = 1.0f, float incr = 0.001f);
+
+    // initialize the setting from the configured information
+    void update();
+
+    // set the ranges from static metadata
+    bool set_from_metadata();
+    void guess_ranges(bool force = false);
+    void save_as_new();
+
+    const ParamMetadata* get_custom_metadata() const {
+        return (_metadata_index >= 0 && _param_metadata[_metadata_index].type > ParamMetadata::Scalar ? &_param_metadata[_metadata_index] : nullptr);
+    }
+
+    // User settable parameters
+    static const struct AP_Param::GroupInfo var_info[];
+
+private:
+};
+
+/*
+  class to hold one screen of settings
+ */
+class AP_OSD_ParamScreen : public AP_OSD_AbstractScreen
+{
+public:
+    enum class Event {
+        NONE,
+        MENU_ENTER,
+        MENU_UP,
+        MENU_DOWN,
+        MENU_EXIT
+    };
+
+    enum class MenuState {
+        PARAM_SELECT,
+        PARAM_VALUE_MODIFY,
+        PARAM_PARAM_MODIFY
+    };
+
+    static const uint8_t NUM_PARAMS = 8;
+    static const uint8_t SAVE_PARAM = NUM_PARAMS + 1;
+
+    void draw(void) override;
+
+    // User settable parameters
+    static const struct AP_Param::GroupInfo var_info[];
+
+private:
+    AP_OSD_ParamSetting params[NUM_PARAMS] = {
+        {1, true, 1, 1, 102, 0, 4034 },   // ATC_RAT_PIT_P
+        {2, true, 1, 3, 102, 0, 130  },   // ATC_RAT_PIT_D
+        {3, true, 1, 5, 102, 0, 4033 },   // ATC_RAT_RLL_P
+        {4, true, 1, 7, 102, 0, 129  },   // ATC_RAT_RLL_D
+        //{5, true, 1, 9, 102, 0, 4035 },   // ATC_RAT_YAW_P
+        {5, true, 1, 9, 6, 0, 24657 },   // RC1_OPTION
+        {6, true, 1, 11, 3, 0, 231, 0.0f, 2.0f, 1.0f }, // INS_LOG_BAT_OPT
+        //{6, true, 1, 13, 119, 0, 11 }, // SERIAL0_PROTOCOL
+        {7, true, 1, 13, 119, 0, 11 }, // SERIAL0_PROTOCOL
+        {8, false, 1, 13, 56, 0, 0, 0.0f, 1.0f, 0.1f } // ACRO_RP_EXPO
+    };
+
+    void update_state_machine();
+    void draw_parameter(uint8_t param_number, uint8_t x, uint8_t y);
+    void modify_parameter(uint8_t number, Event ev);
+    void modify_configured_parameter(uint8_t number, Event ev);
+    void save_parameters();
+
+    Event map_rc_input_to_event() const;
+    RC_Channel::aux_switch_pos_t get_channel_pos(uint8_t rcmapchan) const;
+
+    uint8_t _selected_param = 1;
+    MenuState _menu_state = MenuState::PARAM_SELECT;
+    Event _last_rc_event = Event::NONE;
+
+    // start time of the current button press
+    uint32_t _transition_start_ms;
+    // timeout of the current button press
+    uint32_t _transition_timeout_ms;
+    // number of consecutive times the current transition has happened
+    uint32_t _transition_count;
+};
+
 class AP_OSD
 {
 public:
     friend class AP_OSD_Screen;
+    friend class AP_OSD_ParamScreen;
     //constructor
     AP_OSD();
 
@@ -240,6 +409,7 @@ public:
     AP_Int8 arm_scr;
     AP_Int8 disarm_scr;
     AP_Int8 failsafe_scr;
+    AP_Int32 button_delay_ms;
 
     enum {
         OPTION_DECIMAL_PACK = 1U<<0,
@@ -259,7 +429,8 @@ public:
 
     AP_Int8 units;
 
-    AP_OSD_Screen screen[AP_OSD_NUM_SCREENS];
+    AP_OSD_Screen screen[AP_OSD_NUM_DISPLAY_SCREENS];
+    AP_OSD_ParamScreen param_screen[AP_OSD_NUM_PARAM_SCREENS];
 
     struct NavInfo {
         float wp_distance;
@@ -277,6 +448,14 @@ public:
     void enable() {
         _disable = false;
     }
+
+    AP_OSD_AbstractScreen& get_screen(uint8_t idx) {
+        return (idx >= AP_OSD_NUM_DISPLAY_SCREENS) ? (AP_OSD_AbstractScreen&)param_screen[idx - AP_OSD_NUM_DISPLAY_SCREENS] : (AP_OSD_AbstractScreen&)screen[idx];
+    }
+
+    // Check whether arming is allowed
+    bool pre_arm_check(char *failure_msg, const uint8_t failure_msg_len) const;
+    bool is_readonly_screen() const { return current_screen < AP_OSD_NUM_DISPLAY_SCREENS; }
 
 private:
     void osd_thread();
