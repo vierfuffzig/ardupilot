@@ -163,6 +163,8 @@ protected:
 
     bool camera_checks(bool display_failure);
 
+    bool osd_checks(bool display_failure) const;
+
     bool aux_auth_checks(bool display_failure);
 
     virtual bool system_checks(bool report);
