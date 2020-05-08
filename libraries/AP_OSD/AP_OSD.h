@@ -240,15 +240,20 @@ class AP_OSD_ParamSetting : public AP_OSD_Setting
 {
 public:
     // configured index.
-    AP_Int16 _param_index;
+    AP_Int32 _param_group;
+    AP_Int16 _param_key_idx;
+    AP_Float _param_min;
+    AP_Float _param_max;
+    AP_Float _param_incr;
+
     // parameter number
     uint8_t _param_number;
     char _param_name[17];
     AP_Param* param;
     ap_var_type _param_type;
 
-    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, uint16_t idx);
-    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, const char* name);
+    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, uint32_t idx, float min, float max, float incr);
+    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, const char* name, float min, float max, float incr);
 
     // initialize the setting from the configured information
     void update();
@@ -257,7 +262,7 @@ public:
     static const struct AP_Param::GroupInfo var_info[];
 
 private:
-    uint16_t _current_index;
+    uint32_t _current_index;
 };
 
 /*
@@ -283,14 +288,14 @@ public:
 
 private:
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
-        {1, true, 1, 1, "ATC_RAT_PIT_P"},
-        {2, true, 1, 3, "ATC_RAT_PIT_D"},
-        {3, true, 1, 5, "ATC_RAT_RLL_P"},
-        {4, true, 1, 7, "ATC_RAT_RLL_D"},
-        {5, true, 1, 9, "ATC_RAT_YAW_P"},
-        {6, true, 1, 11, "INS_LOG_BAT_OPT"},
-        {7, true, 1, 13, "ACRO_RP_EXPO"},
-        {8, false, 1, 13, "ATC_INPUT_TC"}
+        {1, true, 1, 1, "ATC_RAT_PIT_P", 0.0f, 1.0f, 0.0001f },
+        {2, true, 1, 3, "ATC_RAT_PIT_D", 0.0f, 1.0f, 0.0001f },
+        {3, true, 1, 5, "ATC_RAT_RLL_P", 0.0f, 1.0f, 0.0001f },
+        {4, true, 1, 7, "ATC_RAT_RLL_D", 0.0f, 1.0f, 0.0001f },
+        {5, true, 1, 9, "ATC_RAT_YAW_P", 0.0f, 1.0f, 0.0001f },
+        {6, true, 1, 11, "INS_LOG_BAT_OPT", 0.0f, 2.0f, 1.0f },
+        {7, true, 1, 13, "ACRO_RP_EXPO", 0.0f, 1.0f, 0.1f },
+        {8, false, 1, 13, "ATC_INPUT_TC", 0.0f, 1.0f, 0.1f}
     };
 
     void update_state_machine();

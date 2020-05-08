@@ -70,14 +70,40 @@ const AP_Param::GroupInfo AP_OSD_ParamSetting::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_Y", 3, AP_OSD_ParamSetting, ypos, 0),
 
-    // @Param: _NAME
-    // @DisplayName: Parameter index
-    // @Description: Index of the parameter to be displayed and modified
+    // @Param: _GRP
+    // @DisplayName: Parameter group
+    // @Description: Group of the parameter to be displayed and modified
     // @User: Standard
-    AP_GROUPINFO("_IDX", 4, AP_OSD_ParamSetting, _param_index, 0),
+    AP_GROUPINFO("_GRP", 4, AP_OSD_ParamSetting, _param_group, 0),
+
+    // @Param: _KEY
+    // @DisplayName: Parameter key
+    // @Description: Key of the parameter to be displayed and modified
+    // @User: Standard
+    AP_GROUPINFO("_KEY", 5, AP_OSD_ParamSetting, _param_key_idx, 0),
+
+    // @Param: _MIN
+    // @DisplayName: Parameter minimum
+    // @Description: Minimum value of the parameter to be displayed and modified
+    // @User: Standard
+    AP_GROUPINFO("_MIN", 6, AP_OSD_ParamSetting, _param_min, 0.0f),
+
+    // @Param: _MAX
+    // @DisplayName: Parameter maximum
+    // @Description: Maximum of the parameter to be displayed and modified
+    // @User: Standard
+    AP_GROUPINFO("_MAX", 7, AP_OSD_ParamSetting, _param_max, 1.0f),
+
+    // @Param: _INCR
+    // @DisplayName: Parameter increment
+    // @Description: Increment of the parameter to be displayed and modified
+    // @User: Standard
+    AP_GROUPINFO("_INCR", 8, AP_OSD_ParamSetting, _param_incr, 0.001f),
 
     AP_GROUPEND
 };
+
+#define PARAM_INDEX(key, group) (uint32_t((int16_t(key) << 18) | int32_t(group)))
 
 extern const AP_HAL::HAL& hal;
 
@@ -90,46 +116,42 @@ AP_OSD_Setting::AP_OSD_Setting(bool _enabled, uint8_t x, uint8_t y)
 }
 
 // constructor
-AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, uint16_t idx)
+AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, uint32_t idx, float min, float max, float incr)
     : AP_OSD_Setting(_enabled, x, y), _param_number(param_number)
 {
-    _param_index = idx;
+    _param_group = idx & 0x3FFFF;
+    _param_key_idx = (idx & 0xFFFC0000) >> 18;
 }
 
 // constructor
-AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, const char* name)
+AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, const char* name, float min, float max, float incr)
     : AP_OSD_Setting(_enabled, x, y), _param_number(param_number)
 {
-    _param_index = -1;
+    _param_group = -1;
+    _param_key_idx = -1;
     strncpy(_param_name, name, 16);
 }
 
 // update the contained parameter
 void AP_OSD_ParamSetting::update()
 {
-    if (_current_index == _param_index && _param_index >= 0) {
+    if (_current_index == PARAM_INDEX(_param_key_idx, _param_group) && _param_group >= 0) {
         return;
     }
 
     AP_Param::ParamToken token;
     // a name was specified as the default
-    if (_param_name[0] && !_param_index.configured()) {
+    if (_param_name[0] && !_param_group.configured()) {
         param = AP_Param::find(_param_name, &_param_type);
         uint16_t count = 0;
         for (AP_Param* p=AP_Param::first(&token, &_param_type); p && param != p; p=AP_Param::next_scalar(&token, &_param_type)) {
             count++;
         }
-        _param_index = count;
-    } else {
-        uint16_t count=0;
-        for (param=AP_Param::first(&token, &_param_type);
-            param && count < _param_index;
-            param=AP_Param::next_scalar(&token, &_param_type)) {
-            count++;
-        }
+        _param_group = token.group_element;
+        _param_key_idx = ((token.key << 5) | token.idx);
     }
 
-    _current_index = _param_index;
+    _current_index = PARAM_INDEX(_param_key_idx, _param_group);
 
     if (param == nullptr) {
         enabled = false;
