@@ -248,7 +248,10 @@ void AP_OSD_ParamScreen::modify_parameter(uint8_t number, Event ev)
         return;
     }
 
-    int32_t incr = (ev == Event::MENU_DOWN) ? -1 : 1;
+    float incr = setting._param_incr * ((ev == Event::MENU_DOWN) ? -1.0f : 1.0f);
+    int32_t incr_int = int32_t(roundf(incr));
+    int32_t max_int = int32_t(roundf(setting._param_max));
+    int32_t min_int = int32_t(roundf(setting._param_min));
 
     if (p != nullptr) {
         switch (setting._param_type) {
@@ -257,34 +260,34 @@ void AP_OSD_ParamScreen::modify_parameter(uint8_t number, Event ev)
         case AP_PARAM_INT8: 
         {
             AP_Int8* param = (AP_Int8*)p;
-            param->set(constrain_int16(param->get() + incr, -1, 127));
+            param->set(constrain_int16(param->get() + incr_int, min_int, max_int));
         }
             break;
         case AP_PARAM_INT16:
         {
             AP_Int16* param = (AP_Int16*)p;
-            param->set(constrain_int16(param->get() + incr, -1, 32767));
+            param->set(constrain_int16(param->get() + incr_int, min_int, max_int));
         }
             break;
         case AP_PARAM_INT32:
         {
             AP_Int32* param = (AP_Int32*)p;
-            param->set(constrain_int32(param->get() + incr, -1, INT_MAX));
+            param->set(constrain_int32(param->get() + incr_int, min_int, max_int));
         }
             break;
         case AP_PARAM_FLOAT:
         {
             AP_Float* param = (AP_Float*)p;
-            param->set(param->get() + incr * 0.001f);
+            param->set(constrain_float(param->get() + incr, setting._param_min, setting._param_max));
         }
             break;
         case AP_PARAM_VECTOR3F:
         {
             AP_Vector3f* param = (AP_Vector3f*)p;
             Vector3f vec = param->get();
-            vec.x += incr * 0.001f;
-            vec.y += incr * 0.001f;
-            vec.z += incr * 0.001f;
+            vec.x = constrain_float(vec.x + incr, setting._param_min, setting._param_max);
+            vec.y = constrain_float(vec.y + incr, setting._param_min, setting._param_max);
+            vec.z = constrain_float(vec.z + incr, setting._param_min, setting._param_max);
             param->set(vec);
         }
             break;
