@@ -252,8 +252,10 @@ public:
     AP_Param* param;
     ap_var_type _param_type;
 
-    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, uint32_t idx, float min, float max, float incr);
-    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, const char* name, float min, float max, float incr);
+    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, uint32_t idx,
+        float min = 0.0f, float max = 1.0f, float incr = 0.001f);
+    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, const char* name,
+        float min = 0.0f, float max = 1.0f, float incr = 0.001f);
 
     // initialize the setting from the configured information
     void update();
@@ -288,11 +290,11 @@ public:
 
 private:
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
-        {1, true, 1, 1, "ATC_RAT_PIT_P", 0.0f, 1.0f, 0.0001f },
-        {2, true, 1, 3, "ATC_RAT_PIT_D", 0.0f, 1.0f, 0.0001f },
-        {3, true, 1, 5, "ATC_RAT_RLL_P", 0.0f, 1.0f, 0.0001f },
-        {4, true, 1, 7, "ATC_RAT_RLL_D", 0.0f, 1.0f, 0.0001f },
-        {5, true, 1, 9, "ATC_RAT_YAW_P", 0.0f, 1.0f, 0.0001f },
+        {1, true, 1, 1, "ATC_RAT_PIT_P" },
+        {2, true, 1, 3, "ATC_RAT_PIT_D" },
+        {3, true, 1, 5, "ATC_RAT_RLL_P" },
+        {4, true, 1, 7, "ATC_RAT_RLL_D" },
+        {5, true, 1, 9, "ATC_RAT_YAW_P" },
         {6, true, 1, 11, "INS_LOG_BAT_OPT", 0.0f, 2.0f, 1.0f },
         {7, true, 1, 13, "ACRO_RP_EXPO", 0.0f, 1.0f, 0.1f },
         {8, false, 1, 13, "ATC_INPUT_TC", 0.0f, 1.0f, 0.1f}
