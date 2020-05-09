@@ -125,7 +125,7 @@ AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, ui
 
 // constructor
 AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, const char* name, float min, float max, float incr)
-    : AP_OSD_Setting(_enabled, x, y), _param_number(param_number)
+    : AP_OSD_Setting(_enabled, x, y), _param_number(param_number), _param_name_default(true)
 {
     _param_group = -1;
     _param_key_idx = -1;
@@ -135,20 +135,28 @@ AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, ui
 // update the contained parameter
 void AP_OSD_ParamSetting::update()
 {
-    if (_current_index == PARAM_INDEX(_param_key_idx, _param_group) && _param_group >= 0) {
+    if (_current_index == PARAM_INDEX(_param_key_idx, _param_group) && _param_key_idx >= 0) {
         return;
     }
-
-    AP_Param::ParamToken token;
+    // if a parameter was configured then use that
+    AP_Param::ParamToken token {};
+    if (_param_group.configured() && _param_key_idx.configured()) {
+        uint32_t key  = uint32_t(_param_key_idx.get()) >> 5;
+        uint32_t idx = uint32_t(_param_key_idx.get()) | 0x1F;
+       // token.key = key - 1;
+        for (param = AP_Param::first(&token, &_param_type);
+            param && (token.key != key || token.idx != idx || token.group_element != uint32_t(_param_group.get()));
+            param = AP_Param::next_scalar(&token, &_param_type)) {
+        }
     // a name was specified as the default
-    if (_param_name[0] && !_param_group.configured()) {
+    } else if (_param_name_default) {
         param = AP_Param::find(_param_name, &_param_type);
-        uint16_t count = 0;
-        for (AP_Param* p=AP_Param::first(&token, &_param_type); p && param != p; p=AP_Param::next_scalar(&token, &_param_type)) {
-            count++;
+        for (AP_Param* ap=AP_Param::first(&token, &_param_type);
+            ap != param;
+            ap=AP_Param::next_scalar(&token, &_param_type)) {
         }
         _param_group = token.group_element;
-        _param_key_idx = ((token.key << 5) | token.idx);
+        _param_key_idx = token.key << 5 | token.idx;
     }
 
     _current_index = PARAM_INDEX(_param_key_idx, _param_group);

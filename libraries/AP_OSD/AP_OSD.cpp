@@ -238,6 +238,16 @@ void AP_OSD::init()
         // create thread as higher priority than IO
         hal.scheduler->thread_create(FUNCTOR_BIND_MEMBER(&AP_OSD::osd_thread, void), "OSD", 1024, AP_HAL::Scheduler::PRIORITY_IO, 1);
     }
+#ifdef DEBUG_OSD_PARAM_INDEXES
+    AP_Param::ParamToken token;
+    ap_var_type type;
+    for (AP_Param* p=AP_Param::first(&token, &type); p; p=AP_Param::next_scalar(&token, &type)) {
+        char name[17];
+        p->copy_name_token(token, name, 16);
+        name[16] = 0;
+        printf("%-16s: GRP=%06u, KEY=%05u\n", name, token.group_element, ((token.key << 5) | token.idx));
+    }
+#endif
 }
 
 void AP_OSD::osd_thread()

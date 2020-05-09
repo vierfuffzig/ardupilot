@@ -251,6 +251,7 @@ public:
     char _param_name[17];
     AP_Param* param;
     ap_var_type _param_type;
+    bool _param_name_default;
 
     AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, uint32_t idx,
         float min = 0.0f, float max = 1.0f, float incr = 0.001f);
