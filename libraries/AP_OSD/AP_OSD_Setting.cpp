@@ -142,8 +142,8 @@ void AP_OSD_ParamSetting::update()
     AP_Param::ParamToken token {};
     if (_param_group.configured() && _param_key_idx.configured()) {
         uint32_t key  = uint32_t(_param_key_idx.get()) >> 5;
-        uint32_t idx = uint32_t(_param_key_idx.get()) | 0x1F;
-       // token.key = key - 1;
+        uint32_t idx = uint32_t(_param_key_idx.get()) & 0x1F;
+        // surely there is a more efficient way than brute-force search
         for (param = AP_Param::first(&token, &_param_type);
             param && (token.key != key || token.idx != idx || token.group_element != uint32_t(_param_group.get()));
             param = AP_Param::next_scalar(&token, &_param_type)) {
@@ -155,6 +155,7 @@ void AP_OSD_ParamSetting::update()
             ap != param;
             ap=AP_Param::next_scalar(&token, &_param_type)) {
         }
+        // zero if for some reason the parameter was not found
         _param_group = token.group_element;
         _param_key_idx = token.key << 5 | token.idx;
     }
