@@ -257,6 +257,9 @@ def check_SFML(cfg, env):
     if not cfg.options.enable_sfml:
         cfg.msg("Checking for SFML graphics:", 'disabled', color='YELLOW')
         return False
+    if cfg.env.DEST_OS == 'darwin':
+        cfg.env.append_value('INCLUDES', ['/usr/local/include'])
+        cfg.env.append_value('LIBPATH', ['/usr/local/lib'])
     libs = ['sfml-graphics', 'sfml-window','sfml-system']
     for lib in libs:
         if not cfg.check(compiler='cxx', lib=lib, mandatory=False,
