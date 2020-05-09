@@ -185,6 +185,7 @@ const AP_Param::GroupInfo AP_OSD_ParamScreen::var_info[] = {
 };
 
 #define OSD_HOLD_BUTTON_PRESS_DELAY 100
+#define OSD_HOLD_BUTTON_PRESS_COUNT 30
 
 #define OSD_PARAM_DEBUG 0
 
@@ -209,9 +210,9 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
     if (p != nullptr) {
         const bool selected = number == _selected_param;
         uint16_t value_pos = strlen(setting._param_name) + 3;
-        backend->write(x, y, selected && !_modify_param, "%s:", setting._param_name);
+        backend->write(x, y, selected && _menu_state != MenuState::PARAM_VALUE_MODIFY, "%s:", setting._param_name);
 
-        const bool blink = selected && _modify_param;
+        const bool blink = selected && _menu_state == MenuState::PARAM_VALUE_MODIFY;
         switch (type) {
         case AP_PARAM_INT8:
             backend->write(value_pos, y, blink, "%hhd", ((AP_Int8*)p)->get());
@@ -367,8 +368,10 @@ void AP_OSD_ParamScreen::update_state_machine()
     _transition_start_ms = now;
     if (ev == _last_rc_event) {
         _transition_timeout_ms = OSD_HOLD_BUTTON_PRESS_DELAY;
+        _transition_count++;
     } else {
         _transition_timeout_ms = osd->button_delay_ms;
+        _transition_count = 0;
     }
     _last_rc_event = ev;
 
@@ -382,10 +385,19 @@ void AP_OSD_ParamScreen::update_state_machine()
 
     switch (ev) {
     case Event::MENU_ENTER:
-        _modify_param = true;
+        switch(_menu_state) {
+        case MenuState::PARAM_SELECT:
+            _menu_state = MenuState::PARAM_VALUE_MODIFY;
+            break;
+        case MenuState::PARAM_PARAM_MODIFY:
+            _menu_state = MenuState::PARAM_SELECT;
+            break;
+        case MenuState::PARAM_VALUE_MODIFY:
+            break;
+        }
         break;
     case Event::MENU_UP:
-        if (_modify_param) {
+        if (_menu_state == MenuState::PARAM_SELECT) {
             modify_parameter(_selected_param, ev);
         } else {
             _selected_param = (_selected_param + NUM_PARAMS - 2) % NUM_PARAMS + 1;
@@ -396,7 +408,7 @@ void AP_OSD_ParamScreen::update_state_machine()
         }
         break;
     case Event::MENU_DOWN:
-        if (_modify_param) {
+        if (_menu_state == MenuState::PARAM_SELECT) {
             modify_parameter(_selected_param, ev);
         } else {
             _selected_param = _selected_param % NUM_PARAMS + 1;
@@ -407,9 +419,18 @@ void AP_OSD_ParamScreen::update_state_machine()
         }
         break;
     case Event::MENU_EXIT:
-        if (_modify_param) {
+        switch(_menu_state) {
+        case MenuState::PARAM_VALUE_MODIFY:
             save_parameter(_selected_param);
-            _modify_param = false;
+            _menu_state = MenuState::PARAM_SELECT;
+            break;
+        case MenuState::PARAM_SELECT:
+            if (_transition_count == OSD_HOLD_BUTTON_PRESS_COUNT) {
+                _menu_state = MenuState::PARAM_PARAM_MODIFY;
+            }
+            break;
+        case MenuState::PARAM_PARAM_MODIFY:
+            break;
         }
         break;
     case Event::NONE:

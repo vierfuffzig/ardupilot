@@ -282,6 +282,12 @@ public:
         MENU_EXIT
     };
 
+    enum class MenuState {
+        PARAM_SELECT,
+        PARAM_VALUE_MODIFY,
+        PARAM_PARAM_MODIFY
+    };
+
     static const uint8_t NUM_PARAMS = 8;
 
     void draw(void) override;
@@ -309,13 +315,15 @@ private:
     RC_Channel::aux_switch_pos_t get_channel_pos(uint8_t rcmapchan) const;
 
     uint8_t _selected_param = 1;
-    bool _modify_param = false;
+    MenuState _menu_state = MenuState::PARAM_SELECT;
     Event _last_rc_event = Event::NONE;
 
     // start time of the current button press
     uint32_t _transition_start_ms;
     // timeout of the current button press
     uint32_t _transition_timeout_ms;
+    // number of consecutive times the current transition has happened
+    uint32_t _transition_count;
 };
 
 class AP_OSD
