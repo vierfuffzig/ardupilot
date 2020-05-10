@@ -248,14 +248,11 @@ public:
 
     // parameter number
     uint8_t _param_number;
-    char _param_name[17];
     AP_Param* param;
     ap_var_type _param_type;
-    bool _param_name_default;
+    AP_Param::ParamToken _current_token;
 
-    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, uint32_t idx,
-        float min = 0.0f, float max = 1.0f, float incr = 0.001f);
-    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, const char* name,
+    AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, int32_t group, int16_t key,
         float min = 0.0f, float max = 1.0f, float incr = 0.001f);
 
     // initialize the setting from the configured information
@@ -265,7 +262,6 @@ public:
     static const struct AP_Param::GroupInfo var_info[];
 
 private:
-    uint32_t _current_index;
 };
 
 /*
@@ -297,14 +293,14 @@ public:
 
 private:
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
-        {1, true, 1, 1, "ATC_RAT_PIT_P" },
-        {2, true, 1, 3, "ATC_RAT_PIT_D" },
-        {3, true, 1, 5, "ATC_RAT_RLL_P" },
-        {4, true, 1, 7, "ATC_RAT_RLL_D" },
-        {5, true, 1, 9, "ATC_RAT_YAW_P" },
-        {6, true, 1, 11, "INS_LOG_BAT_OPT", 0.0f, 2.0f, 1.0f },
-        {7, true, 1, 13, "ACRO_RP_EXPO", 0.0f, 1.0f, 0.1f },
-        {8, false, 1, 13, "ATC_INPUT_TC", 0.0f, 1.0f, 0.1f}
+        {1, true, 1, 1, 4034, 2048 },   // ATC_RAT_PIT_P
+        {2, true, 1, 3, 130, 2048  },   // ATC_RAT_PIT_D
+        {3, true, 1, 5, 4033, 2048 },   // ATC_RAT_RLL_P
+        {4, true, 1, 7, 129, 2048  },   // ATC_RAT_RLL_D
+        {5, true, 1, 9, 4035, 2048 },   // ATC_RAT_YAW_P
+        {6, true, 1, 11, 231, 1920, 0.0f, 2.0f, 1.0f }, // INS_LOG_BAT_OPT
+        {7, true, 1, 13, 0, 1728, 0.0f, 1.0f, 0.1f }, // ACRO_RP_EXPO
+        {8, false, 1, 13, 0, 1728, 0.0f, 1.0f, 0.1f } // ACRO_RP_EXPO
     };
 
     void update_state_machine();

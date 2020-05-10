@@ -208,9 +208,14 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
     ap_var_type type = setting._param_type;
     AP_Param* p =  setting.param;
     if (p != nullptr) {
+        // grab the name of the parameter
+        char name[17];
+        p->copy_name_token(setting._current_token, name, 16);
+        name[16] = 0;
+
         const bool selected = number == _selected_param;
-        uint16_t value_pos = strlen(setting._param_name) + 3;
-        backend->write(x, y, selected && _menu_state != MenuState::PARAM_VALUE_MODIFY, "%s:", setting._param_name);
+        uint16_t value_pos = strlen(name) + 3;
+        backend->write(x, y, selected && _menu_state != MenuState::PARAM_VALUE_MODIFY, "%s:", name);
 
         const bool blink = selected && _menu_state == MenuState::PARAM_VALUE_MODIFY;
         switch (type) {

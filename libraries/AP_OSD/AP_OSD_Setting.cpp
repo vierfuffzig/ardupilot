@@ -104,6 +104,7 @@ const AP_Param::GroupInfo AP_OSD_ParamSetting::var_info[] = {
 };
 
 #define PARAM_INDEX(key, group) (uint32_t((int16_t(key) << 18) | int32_t(group)))
+#define PARAM_TOKEN_INDEX(token) (uint32_t(token.key << 23 | token.idx << 18 | token.group_element))
 
 extern const AP_HAL::HAL& hal;
 
@@ -116,56 +117,30 @@ AP_OSD_Setting::AP_OSD_Setting(bool _enabled, uint8_t x, uint8_t y)
 }
 
 // constructor
-AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, uint32_t idx, float min, float max, float incr)
+AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, int32_t group, int16_t key, float min, float max, float incr)
     : AP_OSD_Setting(_enabled, x, y), _param_number(param_number)
 {
-    _param_group = idx & 0x3FFFF;
-    _param_key_idx = (idx & 0xFFFC0000) >> 18;
-}
-
-// constructor
-AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, const char* name, float min, float max, float incr)
-    : AP_OSD_Setting(_enabled, x, y), _param_number(param_number), _param_name_default(true)
-{
-    _param_group = -1;
-    _param_key_idx = -1;
-    strncpy(_param_name, name, 16);
+    _param_group = group;
+    _param_key_idx = key;
 }
 
 // update the contained parameter
 void AP_OSD_ParamSetting::update()
 {
-    if (_current_index == PARAM_INDEX(_param_key_idx, _param_group) && _param_key_idx >= 0) {
+    if (PARAM_TOKEN_INDEX(_current_token) == PARAM_INDEX(_param_key_idx, _param_group) && _param_key_idx >= 0) {
         return;
     }
     // if a parameter was configured then use that
-    AP_Param::ParamToken token {};
-    if (_param_group.configured() && _param_key_idx.configured()) {
-        uint32_t key  = uint32_t(_param_key_idx.get()) >> 5;
-        uint32_t idx = uint32_t(_param_key_idx.get()) & 0x1F;
-        // surely there is a more efficient way than brute-force search
-        for (param = AP_Param::first(&token, &_param_type);
-            param && (token.key != key || token.idx != idx || token.group_element != uint32_t(_param_group.get()));
-            param = AP_Param::next_scalar(&token, &_param_type)) {
-        }
-    // a name was specified as the default
-    } else if (_param_name_default) {
-        param = AP_Param::find(_param_name, &_param_type);
-        for (AP_Param* ap=AP_Param::first(&token, &_param_type);
-            ap != param;
-            ap=AP_Param::next_scalar(&token, &_param_type)) {
-        }
-        // zero if for some reason the parameter was not found
-        _param_group = token.group_element;
-        _param_key_idx = token.key << 5 | token.idx;
+    _current_token = AP_Param::ParamToken {};
+    uint32_t key  = uint32_t(_param_key_idx.get()) >> 5;
+    uint32_t idx = uint32_t(_param_key_idx.get()) & 0x1F;
+    // surely there is a more efficient way than brute-force search
+    for (param = AP_Param::first(&_current_token, &_param_type);
+        param && (_current_token.key != key || _current_token.idx != idx || _current_token.group_element != uint32_t(_param_group.get()));
+        param = AP_Param::next_scalar(&_current_token, &_param_type)) {
     }
-
-    _current_index = PARAM_INDEX(_param_key_idx, _param_group);
 
     if (param == nullptr) {
         enabled = false;
-    } else {
-        param->copy_name_token(token, _param_name, 16);
-        _param_name[16] = 0;
     }
 }
