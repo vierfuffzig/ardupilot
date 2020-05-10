@@ -474,6 +474,9 @@ public:
 
     // return true if the parameter is read-only
     bool is_read_only(void) const;
+
+    // return the persistent top level key for the ParamToken key
+    static uint16_t get_persistent_key(uint16_t key) { return _var_info[key].key; }
     
     // count of parameters in tree
     static uint16_t count_parameters(void);
