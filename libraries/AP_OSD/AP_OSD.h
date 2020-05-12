@@ -306,6 +306,7 @@ private:
     void update_state_machine();
     void draw_parameter(uint8_t param_number, uint8_t x, uint8_t y);
     void modify_parameter(uint8_t number, Event ev);
+    void modify_configured_parameter(uint8_t number, Event ev);
     void save_parameter(uint8_t number);
     Event map_rc_input_to_event() const;
     RC_Channel::aux_switch_pos_t get_channel_pos(uint8_t rcmapchan) const;

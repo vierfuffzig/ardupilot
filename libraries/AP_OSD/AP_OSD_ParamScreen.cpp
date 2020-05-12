@@ -304,6 +304,43 @@ void AP_OSD_ParamScreen::modify_parameter(uint8_t number, Event ev)
     }
 }
 
+// modify which parameter is configued for the given selection
+void AP_OSD_ParamScreen::modify_configured_parameter(uint8_t number, Event ev)
+{
+    AP_OSD_ParamSetting& setting = params[number-1];
+    AP_Param* param;
+
+    if (ev == Event::MENU_DOWN) {
+        param = AP_Param::next_scalar(&setting._current_token, &setting._param_type);
+    } else {
+        // going backwards is somewhat convoluted as the param code is geared for going forward
+        ap_var_type type = AP_PARAM_NONE, prev_type = AP_PARAM_NONE, prev_prev_type = AP_PARAM_NONE;
+        AP_Param::ParamToken token, prev_token, prev_prev_token;
+
+        for (param = AP_Param::first(&token, &type);
+            param && (setting._current_token.key != token.key
+                || setting._current_token.idx != token.idx
+                || setting._current_token.group_element != token.group_element);
+            param = AP_Param::next_scalar(&token, &type)) {
+            prev_prev_token = prev_token;
+            prev_prev_type = prev_type;
+            prev_token = token;
+            prev_type = type;
+        }
+        if (param != nullptr) {
+            param = AP_Param::next_scalar(&prev_prev_token, &prev_prev_type);
+            setting._current_token = prev_prev_token;
+            setting._param_type = prev_prev_type;
+        }
+    }
+
+    if (param != nullptr) {
+        setting._param_group = setting._current_token.group_element;
+        setting._param_key_idx = setting._current_token.key << 5 | setting._current_token.idx;
+        setting.param = param;
+    }
+}
+
 // modify the selected parameter number
 void AP_OSD_ParamScreen::save_parameter(uint8_t number)
 {
@@ -394,47 +431,59 @@ void AP_OSD_ParamScreen::update_state_machine()
         case MenuState::PARAM_SELECT:
             _menu_state = MenuState::PARAM_VALUE_MODIFY;
             break;
-        case MenuState::PARAM_PARAM_MODIFY:
-            _menu_state = MenuState::PARAM_SELECT;
-            break;
         case MenuState::PARAM_VALUE_MODIFY:
+            if (_transition_count >= OSD_HOLD_BUTTON_PRESS_COUNT) {
+                _menu_state = MenuState::PARAM_PARAM_MODIFY;
+            }
+            break;
+        case MenuState::PARAM_PARAM_MODIFY:
             break;
         }
         break;
     case Event::MENU_UP:
-        if (_menu_state == MenuState::PARAM_SELECT) {
-            modify_parameter(_selected_param, ev);
-        } else {
+        switch (_menu_state) {
+        case MenuState::PARAM_SELECT:
             _selected_param = (_selected_param + NUM_PARAMS - 2) % NUM_PARAMS + 1;
             // skip over parameters that are not enabled
             for (uint8_t i = 0; i < NUM_PARAMS && !params[_selected_param-1].enabled; i++) {
                 _selected_param = (_selected_param + NUM_PARAMS - 2) % NUM_PARAMS + 1;
             }
+            break;
+        case MenuState::PARAM_VALUE_MODIFY:
+            modify_parameter(_selected_param, ev);
+            break;
+        case MenuState::PARAM_PARAM_MODIFY:
+            modify_configured_parameter(_selected_param, ev);
+            break;
         }
         break;
     case Event::MENU_DOWN:
-        if (_menu_state == MenuState::PARAM_SELECT) {
-            modify_parameter(_selected_param, ev);
-        } else {
+        switch (_menu_state) {
+        case MenuState::PARAM_SELECT:
             _selected_param = _selected_param % NUM_PARAMS + 1;
             // skip over parameters that are not enabled
             for (uint8_t i = 0; i < NUM_PARAMS && !params[_selected_param-1].enabled; i++) {
                 _selected_param = _selected_param % NUM_PARAMS + 1;
             }
+            break;
+        case MenuState::PARAM_VALUE_MODIFY:
+            modify_parameter(_selected_param, ev);
+            break;
+        case MenuState::PARAM_PARAM_MODIFY:
+            modify_configured_parameter(_selected_param, ev);
+            break;
         }
         break;
     case Event::MENU_EXIT:
         switch(_menu_state) {
+        case MenuState::PARAM_SELECT:
+            break;
         case MenuState::PARAM_VALUE_MODIFY:
             save_parameter(_selected_param);
             _menu_state = MenuState::PARAM_SELECT;
             break;
-        case MenuState::PARAM_SELECT:
-            if (_transition_count == OSD_HOLD_BUTTON_PRESS_COUNT) {
-                _menu_state = MenuState::PARAM_PARAM_MODIFY;
-            }
-            break;
         case MenuState::PARAM_PARAM_MODIFY:
+            _menu_state = MenuState::PARAM_VALUE_MODIFY;
             break;
         }
         break;
