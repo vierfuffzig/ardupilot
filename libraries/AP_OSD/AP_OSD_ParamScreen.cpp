@@ -213,28 +213,42 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
         p->copy_name_token(setting._current_token, name, 16);
         name[16] = 0;
 
+        bool param_blink = false;
+        bool value_blink = false;
         const bool selected = number == _selected_param;
-        uint16_t value_pos = strlen(name) + 3;
-        backend->write(x, y, selected && _menu_state != MenuState::PARAM_VALUE_MODIFY, "%s:", name);
 
-        const bool blink = selected && _menu_state == MenuState::PARAM_VALUE_MODIFY;
+        switch(_menu_state) {
+        case MenuState::PARAM_SELECT:
+            param_blink = selected;
+            break;
+        case MenuState::PARAM_VALUE_MODIFY:
+            value_blink = selected;
+            break;
+        case MenuState::PARAM_PARAM_MODIFY:
+            param_blink = value_blink = selected;
+            break;
+        }
+
+        uint16_t value_pos = strlen(name) + 3;
+        backend->write(x, y, param_blink, "%s:", name);
+
         switch (type) {
         case AP_PARAM_INT8:
-            backend->write(value_pos, y, blink, "%hhd", ((AP_Int8*)p)->get());
+            backend->write(value_pos, y, value_blink, "%hhd", ((AP_Int8*)p)->get());
             break;
         case AP_PARAM_INT16:
-            backend->write(value_pos, y, blink, "%hd", ((AP_Int16*)p)->get());
+            backend->write(value_pos, y, value_blink, "%hd", ((AP_Int16*)p)->get());
             break;
         case AP_PARAM_INT32:
-            backend->write(value_pos, y, blink, "%d", ((AP_Int32*)p)->get());
+            backend->write(value_pos, y, value_blink, "%d", ((AP_Int32*)p)->get());
             break;
         case AP_PARAM_FLOAT:
-            backend->write(value_pos, y, blink, "%.3f", ((AP_Float*)p)->get());
+            backend->write(value_pos, y, value_blink, "%.3f", ((AP_Float*)p)->get());
             break;
         case AP_PARAM_VECTOR3F:
         {
             Vector3f vec = ((AP_Vector3f*)p)->get();
-            backend->write(x, y, blink, "[%.3f,%.3f,%.3f]", vec.x, vec.y, vec.z);
+            backend->write(x, y, value_blink, "[%.3f,%.3f,%.3f]", vec.x, vec.y, vec.z);
         }
             break;
         case AP_PARAM_NONE:
