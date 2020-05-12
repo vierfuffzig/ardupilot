@@ -229,15 +229,28 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
             break;
         }
 
+        const AP_OSD_ParamSetting::ParamMetadata* metadata = setting.get_custom_metadata();
+
         uint16_t value_pos = strlen(name) + 3;
         backend->write(x, y, param_blink, "%s:", name);
 
         switch (type) {
-        case AP_PARAM_INT8:
-            backend->write(value_pos, y, value_blink, "%hhd", ((AP_Int8*)p)->get());
+        case AP_PARAM_INT8: {
+            uint8_t val = ((AP_Int8*)p)->get();
+            if (metadata != nullptr && metadata->type == AP_OSD_ParamSetting::ParamMetadata::StringValues && val > 0 && val < metadata->values_max) {
+                backend->write(value_pos, y, value_blink, "%s", metadata->values[val]);
+            } else {
+                backend->write(value_pos, y, value_blink, "%hhd", val);
+            }
+        }
             break;
-        case AP_PARAM_INT16:
-            backend->write(value_pos, y, value_blink, "%hd", ((AP_Int16*)p)->get());
+        case AP_PARAM_INT16: {
+            if (metadata != nullptr && metadata->type == AP_OSD_ParamSetting::ParamMetadata::Bitmask) {
+                backend->write(value_pos, y, value_blink, "%hd", ((AP_Int16*)p)->get());
+            } else {
+                backend->write(value_pos, y, value_blink, "%hd", ((AP_Int16*)p)->get());
+            }
+        }
             break;
         case AP_PARAM_INT32:
             backend->write(value_pos, y, value_blink, "%d", ((AP_Int32*)p)->get());
@@ -318,6 +331,7 @@ void AP_OSD_ParamScreen::modify_parameter(uint8_t number, Event ev)
     }
 }
 
+
 // modify which parameter is configued for the given selection
 void AP_OSD_ParamScreen::modify_configured_parameter(uint8_t number, Event ev)
 {
@@ -349,9 +363,11 @@ void AP_OSD_ParamScreen::modify_configured_parameter(uint8_t number, Event ev)
     }
 
     if (param != nullptr) {
+        // update the stored index
         setting._param_group = setting._current_token.group_element;
         setting._param_key_idx = setting._current_token.key << 5 | setting._current_token.idx;
         setting.param = param;
+        setting.guess_ranges();
     }
 }
 

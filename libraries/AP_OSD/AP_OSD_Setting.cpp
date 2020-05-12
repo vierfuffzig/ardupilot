@@ -103,8 +103,24 @@ const AP_Param::GroupInfo AP_OSD_ParamSetting::var_info[] = {
     AP_GROUPEND
 };
 
-#define PARAM_INDEX(key, group) (uint32_t((int16_t(key) << 18) | int32_t(group)))
-#define PARAM_TOKEN_INDEX(token) (uint32_t(token.key << 23 | token.idx << 18 | token.group_element))
+#define PARAM_COMPOSITE_INDEX(key, group) (uint32_t((int16_t(key) << 18) | int32_t(group)))
+
+#define OSD_PARAM_DEBUG 0
+#if OSD_PARAM_DEBUG
+#define debug(fmt, args ...) do { hal.console->printf("OSD: " fmt, args); } while (0)
+#else
+#define debug(fmt, args ...)
+#endif
+
+// at the cost of a little flash, we can create much better ranges for certain
+// important settings
+const AP_OSD_ParamSetting::ParamMetadata AP_OSD_ParamSetting::_param_metadata[] = {
+    { PARAM_INDEX(6, 0, 11), -1.0f, 28.0f, 1.0f, ParamMetadata::StringValues, 28, {
+        "", "MAVLink", "MAVLink2", "Frsky D", "Frsky SPort", "GPS", "Alexmos", "SToRM32", "Rangefinder", "FrSky OpenTX",
+        "Lidar360" "Beacon", "Volz", "SBus out", "ESC Telem", "Devo Teleme", "OpticalFlow", "RobotisServo",
+        "NMEA Output", "WindVane", "SLCAN", "RCIN", "MegaSquirt", "LTM", "RunCam", "HottTelem", "Scripting"
+    }}
+};
 
 extern const AP_HAL::HAL& hal;
 
@@ -127,7 +143,7 @@ AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, ui
 // update the contained parameter
 void AP_OSD_ParamSetting::update()
 {
-    if (PARAM_TOKEN_INDEX(_current_token) == PARAM_INDEX(_param_key_idx, _param_group) && _param_key_idx >= 0) {
+    if (PARAM_TOKEN_INDEX(_current_token) == PARAM_COMPOSITE_INDEX(_param_key_idx, _param_group) && _param_key_idx >= 0) {
         return;
     }
     // if a parameter was configured then use that
@@ -139,8 +155,106 @@ void AP_OSD_ParamSetting::update()
         param && (_current_token.key != key || _current_token.idx != idx || _current_token.group_element != uint32_t(_param_group.get()));
         param = AP_Param::next_scalar(&_current_token, &_param_type)) {
     }
+    guess_ranges();
 
     if (param == nullptr) {
         enabled = false;
     }
 }
+
+// guess the ranges and increment for the selected parameter
+void AP_OSD_ParamSetting::guess_ranges()
+{
+    if (param->is_read_only()) {
+        return;
+    }
+
+    // check for statically configured setting metadata
+    if (set_from_metadata()) {
+        return;
+    }
+
+    // nothing statically configured so guess some appropriate values
+    _metadata_index = -1;
+
+    if (param != nullptr) {
+        switch (_param_type) {
+        case AP_PARAM_INT8:
+        {
+            _param_incr = 1;
+            _param_max = 127;
+            _param_min = -1;
+        }
+            break;
+        case AP_PARAM_INT16:
+        {
+            AP_Int16* p = (AP_Int16*)param;
+            _param_min = -1;
+            uint8_t digits = 0;
+            for (int16_t int16p = p->get(); int16p > 0; int16p /= 10) {
+                digits++;
+            }
+            _param_incr = MAX(1, pow(10, digits - 2));
+            _param_max = pow(10, digits + 1);
+            debug("Guessing range for value %d as %f -> %f, %f\n",
+                p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
+        }
+            break;
+        case AP_PARAM_INT32:
+        {
+            AP_Int32* p = (AP_Int32*)param;
+            _param_min = -1;
+            uint8_t digits = 0;
+            for (int32_t int32p = p->get(); int32p > 0; int32p /= 10) {
+                digits++;
+            }
+            _param_incr = MAX(1, pow(10, digits - 2));
+            _param_max = pow(10, digits + 1);
+            debug("Guessing range for value %d as %f -> %f, %f\n",
+                p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
+        }
+            break;
+        case AP_PARAM_FLOAT:
+        {
+            AP_Float* p = (AP_Float*)param;
+
+            uint8_t digits = 0;
+            for (float floatp = p->get(); floatp > 1.0f; floatp /= 10) {
+                digits++;
+            }
+            if (digits < 1) {
+                _param_incr = 0.001f;
+                _param_max = 1.0;
+                _param_min = 0.0f;
+            } else {
+                _param_incr = MAX(1, pow(10, digits - 2));
+                _param_max = powf(10, digits + 1);
+                _param_min = 0.0f;
+            }
+            debug("Guessing range for value %f as %f -> %f, %f\n",
+                p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
+        }
+            break;
+        case AP_PARAM_VECTOR3F:
+        case AP_PARAM_NONE:
+        case AP_PARAM_GROUP:
+            break;
+        }
+    }
+}
+
+bool AP_OSD_ParamSetting::set_from_metadata()
+{
+    // check for statically configured setting metadata
+    for (uint16_t i = 0; i < ARRAY_SIZE(_param_metadata); i++) {
+        if (_param_metadata[i].index == PARAM_TOKEN_INDEX(_current_token)) {
+            _param_incr = _param_metadata[i].increment;
+            _param_min = _param_metadata[i].min_value;
+            _param_max = _param_metadata[i].max_value;
+            _metadata_index = i;
+            return true;
+        }
+    }
+    return false;
+}
+

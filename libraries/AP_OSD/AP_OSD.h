@@ -62,6 +62,9 @@ class AP_OSD_Backend;
 #define SYM_FTMIN  0xE8
 #define SYM_FTSEC  0x99
 
+#define PARAM_INDEX(key, idx, group) (uint32_t(key << 23 | idx << 18 | group))
+#define PARAM_TOKEN_INDEX(token) PARAM_INDEX(token.key, token.idx, token.group_element)
+
 /*
   class to hold one setting
  */
@@ -251,12 +254,38 @@ public:
     AP_Param* param;
     ap_var_type _param_type;
     AP_Param::ParamToken _current_token;
+    int16_t _metadata_index = -1;
+
+    // structure to contain setting constraints for important settings
+    struct ParamMetadata {
+        uint32_t index;
+        float min_value;
+        float max_value;
+        float increment;
+        enum ParamType {
+            Scalar,
+            Bitmask,
+            StringValues
+        } type;
+        uint8_t values_max;
+        const char* values[];
+    };
+
+    static const ParamMetadata _param_metadata[];
 
     AP_OSD_ParamSetting(uint8_t param_number, bool enabled, uint8_t x, uint8_t y, int32_t group, int16_t key,
         float min = 0.0f, float max = 1.0f, float incr = 0.001f);
 
     // initialize the setting from the configured information
     void update();
+
+    // set the ranges from static metadata
+    bool set_from_metadata();
+    void guess_ranges();
+
+    const ParamMetadata* get_custom_metadata() const {
+        return (_metadata_index > 0 && _param_metadata[_metadata_index].type > ParamMetadata::Scalar ? &_param_metadata[_metadata_index] : nullptr);
+    }
 
     // User settable parameters
     static const struct AP_Param::GroupInfo var_info[];
@@ -298,8 +327,9 @@ private:
         {3, true, 1, 5, 4033, 2048 },   // ATC_RAT_RLL_P
         {4, true, 1, 7, 129, 2048  },   // ATC_RAT_RLL_D
         {5, true, 1, 9, 4035, 2048 },   // ATC_RAT_YAW_P
-        {6, true, 1, 11, 231, 1920, 0.0f, 2.0f, 1.0f }, // INS_LOG_BAT_OPT
-        {7, true, 1, 13, 0, 1728, 0.0f, 1.0f, 0.1f }, // ACRO_RP_EXPO
+        //{6, true, 1, 11, 231, 1920, 0.0f, 2.0f, 1.0f }, // INS_LOG_BAT_OPT
+        {6, true, 1, 13, 11, 192 }, // SERIAL0_PROTOCOL
+        {7, true, 1, 13, 11, 192 }, // SERIAL0_PROTOCOL
         {8, false, 1, 13, 0, 1728, 0.0f, 1.0f, 0.1f } // ACRO_RP_EXPO
     };
 
