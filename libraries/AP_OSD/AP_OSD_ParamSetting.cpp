@@ -173,16 +173,11 @@ void AP_OSD_ParamSetting::guess_ranges(bool force)
     }
 
     // nothing statically configured so guess some appropriate values
-    float min, max, incr;
+    float min = -1, max = 127, incr = 1;
 
     if (param != nullptr) {
         switch (_param_type) {
         case AP_PARAM_INT8:
-        {
-            incr = 1;
-            max = 127;
-            min = -1;
-        }
             break;
         case AP_PARAM_INT16:
         {
