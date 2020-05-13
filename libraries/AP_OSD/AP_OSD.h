@@ -268,7 +268,7 @@ public:
             StringValues
         } type;
         uint8_t values_max;
-        const char* values[];
+        const char** values;
     };
 
     static const ParamMetadata _param_metadata[];
