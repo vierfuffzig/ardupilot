@@ -366,8 +366,10 @@ void AP_OSD_ParamScreen::modify_configured_parameter(uint8_t number, Event ev)
         // update the stored index
         setting._param_group = setting._current_token.group_element;
         setting._param_key_idx = setting._current_token.key << 5 | setting._current_token.idx;
-        setting.param = param;
-        setting.guess_ranges();
+        // force update() to refresh the token
+        setting._current_token.key = 0;
+        setting._current_token.idx = 0;
+        setting._current_token.group_element = 0;
     }
 }
 
@@ -513,6 +515,7 @@ void AP_OSD_ParamScreen::update_state_machine()
             _menu_state = MenuState::PARAM_SELECT;
             break;
         case MenuState::PARAM_PARAM_MODIFY:
+            params[_selected_param-1].save_as_new();
             _menu_state = MenuState::PARAM_VALUE_MODIFY;
             break;
         }

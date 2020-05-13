@@ -87,16 +87,42 @@ const AP_Param::GroupInfo AP_OSD_ParamSetting::var_info[] = {
 #define debug(fmt, args ...)
 #endif
 
+// all strings must be upper case
 static const char* SERIAL_PROTOCOL_VALUES[] = {
-    "", "MAVLink", "MAVLink2", "Frsky D", "Frsky SPort", "GPS", "Alexmos", "SToRM32", "Rangefinder", "FrSky OpenTX",
-    "Lidar360" "Beacon", "Volz", "SBus out", "ESC Telem", "Devo Teleme", "OpticalFlow", "RobotisServo",
-    "NMEA Output", "WindVane", "SLCAN", "RCIN", "MegaSquirt", "LTM", "RunCam", "HottTelem", "Scripting"
+    "", "MAV", "MAV2", "FSKY_D", "FSKY_S", "GPS", "ALEX", "STORM", "RNG", "FSKY_TX",
+    "LID360", "BEACN", "VOLZ", "SBUS", "ESC_TLM", "DEV_TLM", "OPTFLW", "RBTSRV",
+    "NMEA", "WNDVNE", "SLCAN", "RCIN", "MGSQRT", "LTM", "RUNCAM", "HOT_TLM", "SCRIPT"
 };
 
-// at the cost of a little flash, we can create much better ranges for certain
-// important settings
+static const char* AUX_OPTIONS[] = {
+    "NONE", "", "FLIP", "SIMP", "RTL", "SAV_TRM", "", "SAV_WP", "", "CAM_TRG",
+    "RNG", "FENCE", "NONE", "SSIMP", "ACRO_TRN", "SPRAY", "AUTO", "AUTOTN", "LAND", "GRIP",
+    "", "CHUTE_EN", "CHUTE_RL", "CHUTE_3P", "MIS_RST", "ATT_FF", "ATT_ACC", "RET_MNT", "RLY", "LAND_GR",
+    "LOST_SND", "M_ESTOP", "M_ILOCK", "BRAKE", "RLY2", "RLY3", "RLY4", "THROW", "OA_ADSB", "PR_LOIT",
+    "OA_PROX", "ARM/DS", "SMRT_RTL", "INVERT", "WNCH_EN", "WNCH_CTL", "RC_OVRD", "USR1", "USR2", "USR3",
+    "LRN_CRSE", "MANUAL", "ACRO", "STEER", "HOLD", "GUIDE", "LOIT", "FOLLOW", "CLR_WP", "SIMP",
+    "ZZAG", "ZZ_SVWP", "COMP_LRN", "SAIL_TCK", "RVRS_THR", "GPS_DIS", "RLY5", "RLY6", "STAB", "PHOLD",
+    "AHOLD", "FHOLD", "CIRCLE", "DRIFT", "SAIL_3POS", "SURF_TRK", "STANDBY", "TAKEOFF", "RCAM_CTL", "RCAM_OSD",
+    "VISO_CAL", "DISARM"
+};
+
+// at the cost of a little flash, we can create much better ranges and values for certain important settings
 const AP_OSD_ParamSetting::ParamMetadata AP_OSD_ParamSetting::_param_metadata[] = {
-    { PARAM_INDEX(6, 0, 11), -1.0f, 28.0f, 1.0f, ParamMetadata::StringValues, 28, SERIAL_PROTOCOL_VALUES }
+    { PARAM_INDEX(6, 0, 11), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES }, // SERIAL_PROTOCOL0
+    { PARAM_INDEX(6, 0, 1), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL1
+    { PARAM_INDEX(6, 0, 3), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL2
+    { PARAM_INDEX(6, 0, 5), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL3
+    { PARAM_INDEX(6, 0, 7), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL4
+    { PARAM_INDEX(6, 0, 9), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL5
+    { PARAM_INDEX(6, 0, 12), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL6
+    { PARAM_INDEX(100, 0, 24657), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC1_OPTION
+    { PARAM_INDEX(100, 0, 24721), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC2_OPTION
+    { PARAM_INDEX(100, 0, 24785), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC3_OPTION
+    { PARAM_INDEX(100, 0, 24849), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC4_OPTION
+    { PARAM_INDEX(100, 0, 24913), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC5_OPTION
+    { PARAM_INDEX(100, 0, 24977), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC6_OPTION
+    { PARAM_INDEX(100, 0, 25041), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC7_OPTION
+    { PARAM_INDEX(100, 0, 25105), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS }   // RC8_OPTION
 };
 
 extern const AP_HAL::HAL& hal;
@@ -124,15 +150,18 @@ void AP_OSD_ParamSetting::update()
         param && (_current_token.key != key || _current_token.idx != idx || _current_token.group_element != uint32_t(_param_group.get()));
         param = AP_Param::next_scalar(&_current_token, &_param_type)) {
     }
-    guess_ranges();
 
     if (param == nullptr) {
+        hal.console->printf("Couldn't find param for key/idx: %d, group: %d\n", _param_key_idx.get(), _param_group.get());
         enabled = false;
+    // if the user has explicitly set the metadata then use that
+    } else if (!_param_min.configured() || !_param_max.configured() || !_param_incr.configured()) {
+        guess_ranges();
     }
 }
 
 // guess the ranges and increment for the selected parameter
-void AP_OSD_ParamSetting::guess_ranges()
+void AP_OSD_ParamSetting::guess_ranges(bool force)
 {
     if (param->is_read_only()) {
         return;
@@ -144,27 +173,27 @@ void AP_OSD_ParamSetting::guess_ranges()
     }
 
     // nothing statically configured so guess some appropriate values
-    _metadata_index = -1;
+    float min, max, incr;
 
     if (param != nullptr) {
         switch (_param_type) {
         case AP_PARAM_INT8:
         {
-            _param_incr = 1;
-            _param_max = 127;
-            _param_min = -1;
+            incr = 1;
+            max = 127;
+            min = -1;
         }
             break;
         case AP_PARAM_INT16:
         {
             AP_Int16* p = (AP_Int16*)param;
-            _param_min = -1;
+            min = -1;
             uint8_t digits = 0;
             for (int16_t int16p = p->get(); int16p > 0; int16p /= 10) {
                 digits++;
             }
-            _param_incr = MAX(1, powf(10, digits - 2));
-            _param_max = powf(10, digits + 1);
+            incr = MAX(1, powf(10, digits - 2));
+            max = powf(10, digits + 1);
             debug("Guessing range for value %d as %f -> %f, %f\n",
                 p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
         }
@@ -172,13 +201,13 @@ void AP_OSD_ParamSetting::guess_ranges()
         case AP_PARAM_INT32:
         {
             AP_Int32* p = (AP_Int32*)param;
-            _param_min = -1;
+            min = -1;
             uint8_t digits = 0;
             for (int32_t int32p = p->get(); int32p > 0; int32p /= 10) {
                 digits++;
             }
-            _param_incr = MAX(1, powf(10, digits - 2));
-            _param_max = powf(10, digits + 1);
+            incr = MAX(1, powf(10, digits - 2));
+            max = powf(10, digits + 1);
             debug("Guessing range for value %d as %f -> %f, %f\n",
                 p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
         }
@@ -191,14 +220,23 @@ void AP_OSD_ParamSetting::guess_ranges()
             for (float floatp = p->get(); floatp > 1.0f; floatp /= 10) {
                 digits++;
             }
+            float floatp = p->get();
             if (digits < 1) {
-                _param_incr = 0.001f;
-                _param_max = 1.0;
-                _param_min = 0.0f;
+                if (!is_zero(floatp)) {
+                    incr = floatp / 100.0f; // move in 1% increments
+                } else {
+                    incr = 0.01f; // move in absolute 1% increments
+                }
+                max = 1.0;
+                min = 0.0f;
             } else {
-                _param_incr = MAX(1, powf(10, digits - 2));
-                _param_max = powf(10, digits + 1);
-                _param_min = 0.0f;
+                if (!is_zero(floatp)) {
+                    incr = floatp / 100.0f; // move in 1% increments
+                } else {
+                    incr = MAX(1, powf(10, digits - 2));
+                }
+                max = powf(10, digits + 1);
+                min = 0.0f;
             }
             debug("Guessing range for value %f as %f -> %f, %f\n",
                 p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
@@ -208,6 +246,16 @@ void AP_OSD_ParamSetting::guess_ranges()
         case AP_PARAM_NONE:
         case AP_PARAM_GROUP:
             break;
+        }
+
+        if (!_param_min.configured() || force) {
+            _param_min = min;
+        }
+        if (!_param_max.configured() || force) {
+            _param_min = max;
+        }
+        if (!_param_incr.configured() || force) {
+            _param_min = incr;
         }
     }
 }
@@ -224,6 +272,26 @@ bool AP_OSD_ParamSetting::set_from_metadata()
             return true;
         }
     }
+    _metadata_index = -1;
     return false;
+}
+
+// modify the selected parameter values
+void AP_OSD_ParamSetting::save_as_new()
+{
+    _param_group.save();
+    _param_key_idx.save();
+    // the user has configured the range and increment, but the parameter
+    // is no longer valid so reset these to guessed values
+    guess_ranges(true);
+    if (_param_min.configured()) {
+        _param_min.save();
+    }
+    if (_param_max.configured()) {
+        _param_max.save();
+    }
+    if (_param_incr.configured()) {
+        _param_incr.save();
+    }
 }
 

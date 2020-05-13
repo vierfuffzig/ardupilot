@@ -281,10 +281,11 @@ public:
 
     // set the ranges from static metadata
     bool set_from_metadata();
-    void guess_ranges();
+    void guess_ranges(bool force = false);
+    void save_as_new();
 
     const ParamMetadata* get_custom_metadata() const {
-        return (_metadata_index > 0 && _param_metadata[_metadata_index].type > ParamMetadata::Scalar ? &_param_metadata[_metadata_index] : nullptr);
+        return (_metadata_index >= 0 && _param_metadata[_metadata_index].type > ParamMetadata::Scalar ? &_param_metadata[_metadata_index] : nullptr);
     }
 
     // User settable parameters
@@ -326,9 +327,10 @@ private:
         {2, true, 1, 3, 130, 2048  },   // ATC_RAT_PIT_D
         {3, true, 1, 5, 4033, 2048 },   // ATC_RAT_RLL_P
         {4, true, 1, 7, 129, 2048  },   // ATC_RAT_RLL_D
-        {5, true, 1, 9, 4035, 2048 },   // ATC_RAT_YAW_P
-        //{6, true, 1, 11, 231, 1920, 0.0f, 2.0f, 1.0f }, // INS_LOG_BAT_OPT
-        {6, true, 1, 13, 11, 192 }, // SERIAL0_PROTOCOL
+        //{5, true, 1, 9, 4035, 2048 },   // ATC_RAT_YAW_P
+        {5, true, 1, 9, 24657, 3200 },   // RC1_OPTION
+        {6, true, 1, 11, 231, 1920, 0.0f, 2.0f, 1.0f }, // INS_LOG_BAT_OPT
+        //{6, true, 1, 13, 11, 192 }, // SERIAL0_PROTOCOL
         {7, true, 1, 13, 11, 192 }, // SERIAL0_PROTOCOL
         {8, false, 1, 13, 0, 1728, 0.0f, 1.0f, 0.1f } // ACRO_RP_EXPO
     };
@@ -338,6 +340,7 @@ private:
     void modify_parameter(uint8_t number, Event ev);
     void modify_configured_parameter(uint8_t number, Event ev);
     void save_parameter(uint8_t number);
+
     Event map_rc_input_to_event() const;
     RC_Channel::aux_switch_pos_t get_channel_pos(uint8_t rcmapchan) const;
 
