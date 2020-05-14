@@ -152,7 +152,7 @@ void AP_OSD_ParamSetting::update()
     }
 
     if (param == nullptr) {
-        hal.console->printf("Couldn't find param for key/idx: %d, group: %d\n", _param_key_idx.get(), _param_group.get());
+        hal.console->printf("Couldn't find param for key/idx: %d, group: %d\n", int(_param_key_idx.get()), int(_param_group.get()));
         enabled = false;
     // if the user has explicitly set the metadata then use that
     } else if (!_param_min.configured() || !_param_max.configured() || !_param_incr.configured()) {
