@@ -202,6 +202,27 @@ extern const AP_HAL::HAL& hal;
 
 void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
 {
+    bool param_blink = false;
+    bool value_blink = false;
+    const bool selected = number == _selected_param;
+
+    switch(_menu_state) {
+    case MenuState::PARAM_SELECT:
+        param_blink = selected;
+        break;
+    case MenuState::PARAM_VALUE_MODIFY:
+        value_blink = selected;
+        break;
+    case MenuState::PARAM_PARAM_MODIFY:
+        param_blink = value_blink = selected;
+        break;
+    }
+
+    if (number >= NUM_PARAMS + 1) {
+        backend->write(x, y, param_blink, "%s", "SAVE");
+        return;
+    }
+
     AP_OSD_ParamSetting& setting = params[number-1];
     setting.update();
 
@@ -213,22 +234,6 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
         p->copy_name_token(setting._current_token, name, 16);
         name[16] = 0;
 
-        bool param_blink = false;
-        bool value_blink = false;
-        const bool selected = number == _selected_param;
-
-        switch(_menu_state) {
-        case MenuState::PARAM_SELECT:
-            param_blink = selected;
-            break;
-        case MenuState::PARAM_VALUE_MODIFY:
-            value_blink = selected;
-            break;
-        case MenuState::PARAM_PARAM_MODIFY:
-            param_blink = value_blink = selected;
-            break;
-        }
-
         const AP_OSD_ParamSetting::ParamMetadata* metadata = setting.get_custom_metadata();
 
         uint16_t value_pos = strlen(name) + 3;
@@ -236,8 +241,9 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
 
         switch (type) {
         case AP_PARAM_INT8: {
-            uint8_t val = ((AP_Int8*)p)->get();
-            if (metadata != nullptr && metadata->type == AP_OSD_ParamSetting::ParamMetadata::StringValues && val > 0 && val < metadata->values_max) {
+            int8_t val = ((AP_Int8*)p)->get();
+            if (metadata != nullptr && metadata->type == AP_OSD_ParamSetting::ParamMetadata::StringValues
+                && val >= 0 && val < metadata->values_max) {
                 backend->write(value_pos, y, value_blink, "%s", metadata->values[val]);
             } else {
                 backend->write(value_pos, y, value_blink, "%hhd", val);
@@ -245,15 +251,24 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
         }
             break;
         case AP_PARAM_INT16: {
-            if (metadata != nullptr && metadata->type == AP_OSD_ParamSetting::ParamMetadata::Bitmask) {
-                backend->write(value_pos, y, value_blink, "%hd", ((AP_Int16*)p)->get());
+            int16_t val = ((AP_Int16*)p)->get();
+            if (metadata != nullptr && metadata->type == AP_OSD_ParamSetting::ParamMetadata::StringValues
+                && val >= 0 && val < metadata->values_max) {
+                backend->write(value_pos, y, value_blink, "%s", metadata->values[val]);
             } else {
-                backend->write(value_pos, y, value_blink, "%hd", ((AP_Int16*)p)->get());
+                backend->write(value_pos, y, value_blink, "%hd", val);
             }
         }
             break;
-        case AP_PARAM_INT32:
-            backend->write(value_pos, y, value_blink, "%d", ((AP_Int32*)p)->get());
+        case AP_PARAM_INT32: {
+           int32_t val = ((AP_Int16*)p)->get();
+            if (metadata != nullptr && metadata->type == AP_OSD_ParamSetting::ParamMetadata::StringValues
+                && val >= 0 && val < metadata->values_max) {
+                backend->write(value_pos, y, value_blink, "%s", metadata->values[val]);
+            } else {
+                backend->write(value_pos, y, value_blink, "%d", val);
+            }
+        }
             break;
         case AP_PARAM_FLOAT:
             backend->write(value_pos, y, value_blink, "%.3f", ((AP_Float*)p)->get());
@@ -274,6 +289,10 @@ void AP_OSD_ParamScreen::draw_parameter(uint8_t number, uint8_t x, uint8_t y)
 // modify the selected parameter number
 void AP_OSD_ParamScreen::modify_parameter(uint8_t number, Event ev)
 {
+    if (number > NUM_PARAMS) {
+        return;
+    }
+
     const AP_OSD_ParamSetting& setting = params[number-1];
     AP_Param* p = setting.param;
 
@@ -331,10 +350,13 @@ void AP_OSD_ParamScreen::modify_parameter(uint8_t number, Event ev)
     }
 }
 
-
 // modify which parameter is configued for the given selection
 void AP_OSD_ParamScreen::modify_configured_parameter(uint8_t number, Event ev)
 {
+    if (number > NUM_PARAMS) {
+        return;
+    }
+
     AP_OSD_ParamSetting& setting = params[number-1];
     AP_Param* param;
 
@@ -373,12 +395,17 @@ void AP_OSD_ParamScreen::modify_configured_parameter(uint8_t number, Event ev)
     }
 }
 
-// modify the selected parameter number
-void AP_OSD_ParamScreen::save_parameter(uint8_t number)
+// save all of the parameters
+void AP_OSD_ParamScreen::save_parameters()
 {
-    AP_Param* p = params[number-1].param;
-    if (p != nullptr) {
-        p->save();
+    for (uint8_t i = 0; i < NUM_PARAMS; i++) {
+        if (params[i].enabled) {
+            AP_Param* p = params[i].param;
+            if (p != nullptr) {
+                p->save();
+            }
+            params[i].save_as_new();
+        }
     }
 }
 
@@ -461,7 +488,11 @@ void AP_OSD_ParamScreen::update_state_machine()
     case Event::MENU_ENTER:
         switch(_menu_state) {
         case MenuState::PARAM_SELECT:
-            _menu_state = MenuState::PARAM_VALUE_MODIFY;
+            if (_selected_param == SAVE_PARAM) {
+                save_parameters();
+            } else {
+                _menu_state = MenuState::PARAM_VALUE_MODIFY;
+            }
             break;
         case MenuState::PARAM_VALUE_MODIFY:
             if (_transition_count >= OSD_HOLD_BUTTON_PRESS_COUNT) {
@@ -475,10 +506,16 @@ void AP_OSD_ParamScreen::update_state_machine()
     case Event::MENU_UP:
         switch (_menu_state) {
         case MenuState::PARAM_SELECT:
-            _selected_param = (_selected_param + NUM_PARAMS - 2) % NUM_PARAMS + 1;
+            _selected_param--;
+            if (_selected_param < 1) {
+                _selected_param = SAVE_PARAM;
+            }
             // skip over parameters that are not enabled
-            for (uint8_t i = 0; i < NUM_PARAMS && !params[_selected_param-1].enabled; i++) {
-                _selected_param = (_selected_param + NUM_PARAMS - 2) % NUM_PARAMS + 1;
+            for (uint8_t i = 0; i < NUM_PARAMS + 1 && (_selected_param != SAVE_PARAM && !params[_selected_param-1].enabled); i++) {
+                _selected_param--;
+                if (_selected_param < 1) {
+                    _selected_param = SAVE_PARAM;
+                }
             }
             break;
         case MenuState::PARAM_VALUE_MODIFY:
@@ -492,10 +529,16 @@ void AP_OSD_ParamScreen::update_state_machine()
     case Event::MENU_DOWN:
         switch (_menu_state) {
         case MenuState::PARAM_SELECT:
-            _selected_param = _selected_param % NUM_PARAMS + 1;
+            _selected_param++;
+            if (_selected_param > SAVE_PARAM) {
+                _selected_param = 1;
+            }
             // skip over parameters that are not enabled
-            for (uint8_t i = 0; i < NUM_PARAMS && !params[_selected_param-1].enabled; i++) {
-                _selected_param = _selected_param % NUM_PARAMS + 1;
+            for (uint8_t i = 0; i < NUM_PARAMS + 1 && (_selected_param != SAVE_PARAM && !params[_selected_param-1].enabled); i++) {
+                _selected_param++;
+                if (_selected_param > SAVE_PARAM) {
+                    _selected_param = 1;
+                }
             }
             break;
         case MenuState::PARAM_VALUE_MODIFY:
@@ -511,11 +554,9 @@ void AP_OSD_ParamScreen::update_state_machine()
         case MenuState::PARAM_SELECT:
             break;
         case MenuState::PARAM_VALUE_MODIFY:
-            save_parameter(_selected_param);
             _menu_state = MenuState::PARAM_SELECT;
             break;
         case MenuState::PARAM_PARAM_MODIFY:
-            params[_selected_param-1].save_as_new();
             _menu_state = MenuState::PARAM_VALUE_MODIFY;
             break;
         }
@@ -544,6 +585,8 @@ void AP_OSD_ParamScreen::draw(void)
             draw_parameter(n._param_number, n.xpos, n.ypos);
         }
     }
+    // the save button
+    draw_parameter(SAVE_PARAM, 25, 14);
 }
 
 // pre_arm_check - returns true if all pre-takeoff checks have completed successfully

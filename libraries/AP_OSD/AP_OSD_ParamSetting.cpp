@@ -129,7 +129,7 @@ extern const AP_HAL::HAL& hal;
 
 // constructor
 AP_OSD_ParamSetting::AP_OSD_ParamSetting(uint8_t param_number, bool _enabled, uint8_t x, uint8_t y, int32_t group, int16_t key, float min, float max, float incr)
-    : AP_OSD_Setting(_enabled, x, y), _param_number(param_number)
+    : AP_OSD_Setting(_enabled, x, y), _param_number(param_number), _metadata_index(-1)
 {
     _param_group = group;
     _param_key_idx = key;
@@ -154,8 +154,7 @@ void AP_OSD_ParamSetting::update()
     if (param == nullptr) {
         hal.console->printf("Couldn't find param for key/idx: %d, group: %d\n", int(_param_key_idx.get()), int(_param_group.get()));
         enabled = false;
-    // if the user has explicitly set the metadata then use that
-    } else if (!_param_min.configured() || !_param_max.configured() || !_param_incr.configured()) {
+    } else {
         guess_ranges();
     }
 }
@@ -189,8 +188,7 @@ void AP_OSD_ParamSetting::guess_ranges(bool force)
             }
             incr = MAX(1, powf(10, digits - 2));
             max = powf(10, digits + 1);
-            debug("Guessing range for value %d as %f -> %f, %f\n",
-                p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
+            debug("Guessing range for value %d as %f -> %f, %f\n", p->get(), min, max, incr);
         }
             break;
         case AP_PARAM_INT32:
@@ -203,8 +201,7 @@ void AP_OSD_ParamSetting::guess_ranges(bool force)
             }
             incr = MAX(1, powf(10, digits - 2));
             max = powf(10, digits + 1);
-            debug("Guessing range for value %d as %f -> %f, %f\n",
-                p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
+            debug("Guessing range for value %d as %f -> %f, %f\n", p->get(), min, max, incr);
         }
             break;
         case AP_PARAM_FLOAT:
@@ -233,8 +230,7 @@ void AP_OSD_ParamSetting::guess_ranges(bool force)
                 max = powf(10, digits + 1);
                 min = 0.0f;
             }
-            debug("Guessing range for value %f as %f -> %f, %f\n",
-                p->get(), _param_min.get(), _param_max.get(), _param_incr.get());
+            debug("Guessing range for value %f as %f -> %f, %f\n", p->get(), min, max, incr);
         }
             break;
         case AP_PARAM_VECTOR3F:
@@ -247,10 +243,10 @@ void AP_OSD_ParamSetting::guess_ranges(bool force)
             _param_min = min;
         }
         if (!_param_max.configured() || force) {
-            _param_min = max;
+            _param_max = max;
         }
         if (!_param_incr.configured() || force) {
-            _param_min = incr;
+            _param_incr = incr;
         }
     }
 }

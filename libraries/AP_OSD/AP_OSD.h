@@ -254,7 +254,7 @@ public:
     AP_Param* param;
     ap_var_type _param_type;
     AP_Param::ParamToken _current_token;
-    int16_t _metadata_index = -1;
+    int16_t _metadata_index;
 
     // structure to contain setting constraints for important settings
     struct ParamMetadata {
@@ -315,6 +315,7 @@ public:
     };
 
     static const uint8_t NUM_PARAMS = 8;
+    static const uint8_t SAVE_PARAM = NUM_PARAMS + 1;
 
     void draw(void) override;
 
@@ -339,7 +340,7 @@ private:
     void draw_parameter(uint8_t param_number, uint8_t x, uint8_t y);
     void modify_parameter(uint8_t number, Event ev);
     void modify_configured_parameter(uint8_t number, Event ev);
-    void save_parameter(uint8_t number);
+    void save_parameters();
 
     Event map_rc_input_to_event() const;
     RC_Channel::aux_switch_pos_t get_channel_pos(uint8_t rcmapchan) const;
