@@ -715,34 +715,6 @@ AP_OSD_Screen::AP_OSD_Screen()
 
 //Symbols
 
-#define SYM_M           0xB9
-#define SYM_KM          0xBA
-#define SYM_FT          0x0F
-#define SYM_MI          0xBB
-#define SYM_ALT_M       0xB1
-#define SYM_ALT_FT      0xB3
-#define SYM_BATT_FULL   0x90
-#define SYM_RSSI        0x01
-
-#define SYM_VOLT  0x06
-#define SYM_AMP   0x9A
-#define SYM_MAH   0x07
-#define SYM_MS    0x9F
-#define SYM_FS    0x99
-#define SYM_KMH   0xA1
-#define SYM_MPH   0xB0
-#define SYM_DEGR  0xA8
-#define SYM_PCNT  0x25
-#define SYM_RPM   0xE0
-#define SYM_ASPD  0xE1
-#define SYM_GSPD  0xE2
-#define SYM_WSPD  0xE3
-#define SYM_VSPD  0xE4
-#define SYM_WPNO  0xE5
-#define SYM_WPDIR  0xE6
-#define SYM_WPDST  0xE7
-#define SYM_FTMIN  0xE8
-#define SYM_FTSEC  0x99
 
 
 
@@ -801,13 +773,13 @@ AP_OSD_Screen::AP_OSD_Screen()
 #define SYM_AH        0xF3
 #define SYM_CLK       0xBC
 
-void AP_OSD_Screen::set_backend(AP_OSD_Backend *_backend)
+void AP_OSD_AbstractScreen::set_backend(AP_OSD_Backend *_backend)
 {
     backend = _backend;
     osd = _backend->get_osd();
 };
 
-bool AP_OSD_Screen::check_option(uint32_t option)
+bool AP_OSD_AbstractScreen::check_option(uint32_t option)
 {
     return (osd->options & option) != 0;
 }
@@ -815,7 +787,7 @@ bool AP_OSD_Screen::check_option(uint32_t option)
 /*
   get the right units icon given a unit
  */
-char AP_OSD_Screen::u_icon(enum unit_type unit)
+char AP_OSD_AbstractScreen::u_icon(enum unit_type unit)
 {
     static const char icons_metric[UNIT_TYPE_LAST] {
         (char)SYM_ALT_M,    //ALTITUDE
@@ -861,7 +833,7 @@ char AP_OSD_Screen::u_icon(enum unit_type unit)
 /*
   scale a value for the user selected units
  */
-float AP_OSD_Screen::u_scale(enum unit_type unit, float value)
+float AP_OSD_AbstractScreen::u_scale(enum unit_type unit, float value)
 {
     static const float scale_metric[UNIT_TYPE_LAST] = {
         1.0,       //ALTITUDE m
