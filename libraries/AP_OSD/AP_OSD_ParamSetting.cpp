@@ -87,6 +87,7 @@ const AP_Param::GroupInfo AP_OSD_ParamSetting::var_info[] = {
 #define debug(fmt, args ...)
 #endif
 
+// common labels
 // all strings must be upper case
 static const char* SERIAL_PROTOCOL_VALUES[] = {
     "", "MAV", "MAV2", "FSKY_D", "FSKY_S", "GPS", "ALEX", "STORM", "RNG", "FSKY_TX",
@@ -94,36 +95,202 @@ static const char* SERIAL_PROTOCOL_VALUES[] = {
     "NMEA", "WNDVNE", "SLCAN", "RCIN", "MGSQRT", "LTM", "RUNCAM", "HOT_TLM", "SCRIPT"
 };
 
-static const char* AUX_OPTIONS[] = {
-    "NONE", "", "FLIP", "SIMP", "RTL", "SAV_TRM", "", "SAV_WP", "", "CAM_TRG",
-    "RNG", "FENCE", "NONE", "SSIMP", "ACRO_TRN", "SPRAY", "AUTO", "AUTOTN", "LAND", "GRIP",
-    "", "CHUTE_EN", "CHUTE_RL", "CHUTE_3P", "MIS_RST", "ATT_FF", "ATT_ACC", "RET_MNT", "RLY", "LAND_GR",
-    "LOST_SND", "M_ESTOP", "M_ILOCK", "BRAKE", "RLY2", "RLY3", "RLY4", "THROW", "OA_ADSB", "PR_LOIT",
-    "OA_PROX", "ARM/DS", "SMRT_RTL", "INVERT", "WNCH_EN", "WNCH_CTL", "RC_OVRD", "USR1", "USR2", "USR3",
-    "LRN_CRSE", "MANUAL", "ACRO", "STEER", "HOLD", "GUIDE", "LOIT", "FOLLOW", "CLR_WP", "SIMP",
-    "ZZAG", "ZZ_SVWP", "COMP_LRN", "SAIL_TCK", "RVRS_THR", "GPS_DIS", "RLY5", "RLY6", "STAB", "PHOLD",
-    "AHOLD", "FHOLD", "CIRCLE", "DRIFT", "SAIL_3POS", "SURF_TRK", "STANDBY", "TAKEOFF", "RCAM_CTL", "RCAM_OSD",
-    "VISO_CAL", "DISARM"
+static const char* SERVO_FUNCTIONS[] = {
+    "NONE", "RCPASS", "FLAP", "FLAP_AUTO", "AIL", "", "MNT_PAN", "MNT_TLT", "MNT_RLL", "MNT_OPEN", 
+    "CAM_TRG", "", "MNT2_PAN", "MNT2_TLT", "MNT2_RLL", "MNT2_OPEN", "DIF_SPL_L1", "DIF_SPL_R1", "", "ELE",
+    "", "RUD", "SPR_PMP", "SPR_SPIN", "FLPRON_L", "FLPRON_R", "GRND_STEER", "PARACHT", "GRIP", "GEAR",
+    "ENG_RUN_EN", "HELI_RSC", "HELI_TAIL_RSC", "MOT_1", "MOT_2", "MOT_3", "MOT_4", "MOT_5", "MOT_6", "MOT_7",
+    "MOT_8", "MOT_TLT", "", "", "", "", "", "", "", "",
+    "", "RCIN_1", "RCIN_2", "RCIN_3", "RCIN_4", "RCIN_5", "RCIN_6", "RCIN_7", "RCIN_8", "RCIN_9",
+    "RCIN_10", "RCIN_11", "RCIN_12", "RCIN_13", "RCIN_14", "RCIN_15", "RCIN_16", "IGN", "", "START",
+    "THR", "TRCK_YAW", "TRCK_PIT", "THR_L", "THR_R", "TLTMOT_L", "TLTMOT_R", "ELEVN_L", "ELEVN_R", "VTAIL_L",
+    "VTAIL_R", "BOOST_THR", "MOT_9", "MOT_10", "MOT_11", "MOT_12", "DIF_SPL_L2", "DIF_SPL_R2", "", "MAIN_SAIL",
+    "CAM_ISO", "CAM_APTR", "CAM_FOC", "CAM_SH_SPD", "SCRPT_1", "SCRPT_2", "SCRPT_3", "SCRPT_4", "SCRPT_5", "SCRPT_6",
+    "SCRPT_7", "SCRPT_8", "SCRPT_9", "SCRPT_10", "SCRPT_11", "SCRPT_12", "SCRPT_13", "SCRPT_14", "SCRPT_15", "SCRPT_16",
+    "", "", "", "", "", "", "", "", "", "",
+    "NEOPX_1", "NEOPX_2", "NEOPX_3", "NEOPX_4", "RAT_RLL", "RAT_PIT","RAT_THRST", "RAT_YAW", "WSAIL_EL", "PRLED_1",
+    "PRLED_2", "PRLED_3", "PRLED_CLK"
 };
 
+#if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
+// copter labels
+
+static const char* AUX_OPTIONS[] = {
+    "NONE", "", "FLIP", "SIMP", "RTL", "SAV_TRM", "", "SAV_WP", "", "CAM_TRG",
+    "RNG", "FENCE", "", "SSIMP", "ACRO_TRN", "SPRAY", "AUTO", "AUTOTN", "LAND", "GRIP",
+    "", "CHUTE_EN", "CHUTE_RL", "CHUTE_3P", "MIS_RST", "ATT_FF", "ATT_ACC", "RET_MNT", "RLY", "LAND_GR",
+    "LOST_SND", "M_ESTOP", "M_ILOCK", "BRAKE", "RLY2", "RLY3", "RLY4", "THROW", "OA_ADSB", "PR_LOIT",
+    "OA_PROX", "ARM/DS", "SMRT_RTL", "INVERT", "", "", "RC_OVRD", "USR1", "USR2", "USR3",
+    "", "", "ACRO", "", "", "GUIDE", "LOIT", "FOLLOW", "CLR_WP", "",
+    "ZZAG", "ZZ_SVWP", "COMP_LRN", "", "", "GPS_DIS", "RLY5", "RLY6", "STAB", "PHOLD",
+    "AHOLD", "FHOLD", "CIRCLE", "DRIFT", "", "", "STANDBY", "", "RCAM_CTL", "RCAM_OSD",
+    "VISO_CAL", "DISARM", "", "ZZ_Auto", "", "", "", "", "", "",
+    "", "", "", "", "", "", "", "", "", "",
+    "KILLIMU1", "KILLIMU2", "CAM_MOD_TOG"
+};
+
+static const char* FLTMODES[] = {
+    "STAB", "ACRO", "ALTHOLD", "AUTO", "GUIDED", "LOIT", "RTL", "CIRC", "", "LAND",
+    "", "DRFT", "", "SPORT", "FLIP", "ATUN", "POSHLD", "BRAKE", "THROW", "AVD_ADSB",
+    "GUID_NOGPS", "SMRTRTL", "FLOHOLD", "FOLLOW", "ZIGZAG", "SYSID", "HELI_ARO"
+};
+
+static const char* FS_OPTIONS[] = {
+    "NONE", "CONT_RCFS", "CONT_GCSFS", "CONT_RC/GCSFS", "", "", "", "CONT_LAND", "",
+    "", "", "", "", "", "", "CONT_CTRL_GCS", "", "", "CONTNUE"
+};
+
+#elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+// plane labels
+
+static const char* AUX_OPTIONS[] = {
+    "NONE", "", "", "", "RTL", "", "", "", "", "CAM_TRG",
+    "", "", "", "", "", "", "AUTO", "", "", "",
+    "", "", "", "", "MIS_RST", "", "", "", "RLY", "LAND_GR",
+    "LOST_SND", "M_ESTOP", "", "", "", "RLY3", "RLY4", "", "OA_ADSB", "",
+    "", "ARM/DS", "", "INVERT", "", "", "RC_OVRD", "", "", "",
+    "", "MANUAL", "", "", "", "GUIDE", "LOIT", "", "CLR_WP", "",
+    "", "", "COMP_LRN", "", "REV_THR", "GPS_DIS", "RLY5", "RLY6", "", "",
+    "", "", "CIRCLE", "", "", "", "", "TAKEOFF", "RCAM_CTL", "RCAM_OSD",
+    "", "DSARM", "QASS3POS", "", "", "", "", "", "", "", 
+    "", "", "", "", "", "", "", "", "", "",
+    "KILLIMU1", "KILLIMU2", "CAM_TOG"
+};
+
+static const char* FLTMODES[] = {
+    "MAN", "CIRC", "STAB", "TRAIN", "ACRO", "FBWA", "FBWB", "CRUISE", "ATUNE", "", "AUTO",
+    "RTL", "LOIT", "TKOF", "ADSB", "GUID", "", "QSTAB", "QHOV", "QLOIT", "QLAND",
+    "QRTL", "QTUNE", "QACRO"
+};
+
+static const char* FS_SHRT_ACTNS[] = {
+    "CRC_NOCHNGE", "CIRC", "FBWA", "DSABLE"
+};
+
+static const char* FS_LNG_ACTNS[] = {
+    "CNTNUE", "RTL", "GLIDE", "PARACHT"
+};
+
+#endif
+
 // at the cost of a little flash, we can create much better ranges and values for certain important settings
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+// plane parameters
 const AP_OSD_ParamSetting::ParamMetadata AP_OSD_ParamSetting::_param_metadata[] = {
+    
+    { PARAM_INDEX(3, 0, 11), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES }, // SERIAL_PROTOCOL0
+    { PARAM_INDEX(3, 0, 1), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL1
+    { PARAM_INDEX(3, 0, 3), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL2
+    { PARAM_INDEX(3, 0, 5), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL3
+    { PARAM_INDEX(3, 0, 7), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL4
+    { PARAM_INDEX(3, 0, 9), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL5
+    { PARAM_INDEX(3, 0, 12), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES }, // SERIAL_PROTOCOL6
+
+    { PARAM_INDEX(146, 0, 20550), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO1_FUNCTION
+    { PARAM_INDEX(146, 0, 20614), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO2_FUNCTION
+    { PARAM_INDEX(146, 0, 20678), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO3_FUNCTION
+    { PARAM_INDEX(146, 0, 20742), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO4_FUNCTION
+    { PARAM_INDEX(146, 0, 20806), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO5_FUNCTION
+    { PARAM_INDEX(146, 0, 20870), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO6_FUNCTION
+    { PARAM_INDEX(146, 0, 20934), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO7_FUNCTION
+    { PARAM_INDEX(146, 0, 20998), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO8_FUNCTION
+    { PARAM_INDEX(146, 0, 21062), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO9_FUNCTION
+    { PARAM_INDEX(146, 0, 21126), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO10_FUNCTION
+    { PARAM_INDEX(146, 0, 21190), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO11_FUNCTION
+    { PARAM_INDEX(146, 0, 21254), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO12_FUNCTION
+    { PARAM_INDEX(146, 0, 21318), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO13_FUNCTION
+    { PARAM_INDEX(146, 0, 21382), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO14_FUNCTION
+    { PARAM_INDEX(146, 0, 21446), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO15_FUNCTION
+    { PARAM_INDEX(146, 0, 21510), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO16_FUNCTION
+    
+    { PARAM_INDEX(146, 0, 24647), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC1_OPTION
+    { PARAM_INDEX(146, 0, 24711), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC2_OPTION
+    { PARAM_INDEX(146, 0, 24775), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC3_OPTION
+    { PARAM_INDEX(146, 0, 24839), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC4_OPTION
+    { PARAM_INDEX(146, 0, 24903), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC5_OPTION
+    { PARAM_INDEX(146, 0, 24967), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC6_OPTION
+    { PARAM_INDEX(146, 0, 25031), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC7_OPTION
+    { PARAM_INDEX(146, 0, 25095), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC8_OPTION
+    { PARAM_INDEX(146, 0, 25159), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC9_OPTION
+    { PARAM_INDEX(146, 0, 25223), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC10_OPTION
+    { PARAM_INDEX(146, 0, 25287), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC11_OPTION
+    { PARAM_INDEX(146, 0, 25351), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC12_OPTION
+    { PARAM_INDEX(146, 0, 25415), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC13_OPTION
+    { PARAM_INDEX(146, 0, 25479), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC14_OPTION
+    { PARAM_INDEX(146, 0, 25543), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC15_OPTION
+    { PARAM_INDEX(146, 0, 25607), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC16_OPTION
+
+    { PARAM_INDEX(65, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE1
+    { PARAM_INDEX(66, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE2
+    { PARAM_INDEX(67, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE3
+    { PARAM_INDEX(68, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE4
+    { PARAM_INDEX(69, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE5
+    { PARAM_INDEX(70, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE6
+    { PARAM_INDEX(71, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // INITIAL_MODE
+
+    { PARAM_INDEX(59, 0, 0), 0, 3, 1, ParamMetadata::StringValues, ARRAY_SIZE(FS_SHRT_ACTNS), FS_SHRT_ACTNS }, // FS_SHRT_ACTN
+    { PARAM_INDEX(61, 0, 0), 0, 3, 1, ParamMetadata::StringValues, ARRAY_SIZE(FS_LNG_ACTNS), FS_LNG_ACTNS } // FS_LNG_ACTN
+
+};
+
+#elif APM_BUILD_TYPE(APM_BUILD_ArduCopter)
+// copter parameters
+const AP_OSD_ParamSetting::ParamMetadata AP_OSD_ParamSetting::_param_metadata[] = {
+    
     { PARAM_INDEX(6, 0, 11), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES }, // SERIAL_PROTOCOL0
     { PARAM_INDEX(6, 0, 1), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL1
     { PARAM_INDEX(6, 0, 3), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL2
     { PARAM_INDEX(6, 0, 5), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL3
     { PARAM_INDEX(6, 0, 7), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL4
     { PARAM_INDEX(6, 0, 9), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL5
-    { PARAM_INDEX(6, 0, 12), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES },  // SERIAL_PROTOCOL6
-    { PARAM_INDEX(100, 0, 24657), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC1_OPTION
-    { PARAM_INDEX(100, 0, 24721), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC2_OPTION
-    { PARAM_INDEX(100, 0, 24785), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC3_OPTION
-    { PARAM_INDEX(100, 0, 24849), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC4_OPTION
-    { PARAM_INDEX(100, 0, 24913), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC5_OPTION
-    { PARAM_INDEX(100, 0, 24977), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC6_OPTION
-    { PARAM_INDEX(100, 0, 25041), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC7_OPTION
-    { PARAM_INDEX(100, 0, 25105), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS }   // RC8_OPTION
+    { PARAM_INDEX(6, 0, 12), -1, 28, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERIAL_PROTOCOL_VALUES), SERIAL_PROTOCOL_VALUES }, // SERIAL_PROTOCOL6
+
+    { PARAM_INDEX(96, 0, 20560), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO1_FUNCTION
+    { PARAM_INDEX(96, 0, 20624), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO2_FUNCTION
+    { PARAM_INDEX(96, 0, 20688), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO3_FUNCTION
+    { PARAM_INDEX(96, 0, 20752), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO4_FUNCTION
+    { PARAM_INDEX(96, 0, 20816), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO5_FUNCTION
+    { PARAM_INDEX(96, 0, 20880), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO6_FUNCTION
+    { PARAM_INDEX(96, 0, 20944), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO7_FUNCTION
+    { PARAM_INDEX(96, 0, 21008), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO8_FUNCTION
+    { PARAM_INDEX(96, 0, 21072), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO9_FUNCTION
+    { PARAM_INDEX(96, 0, 21136), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO10_FUNCTION
+    { PARAM_INDEX(96, 0, 21200), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO11_FUNCTION
+    { PARAM_INDEX(96, 0, 21264), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO12_FUNCTION
+    { PARAM_INDEX(96, 0, 21328), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO13_FUNCTION
+    { PARAM_INDEX(96, 0, 21392), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO14_FUNCTION
+    { PARAM_INDEX(96, 0, 21456), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO15_FUNCTION
+    { PARAM_INDEX(96, 0, 21520), 0, 132, 1, ParamMetadata::StringValues, ARRAY_SIZE(SERVO_FUNCTIONS), SERVO_FUNCTIONS }, // SERVO16_FUNCTION
+    
+    { PARAM_INDEX(96, 0, 24657), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC1_OPTION
+    { PARAM_INDEX(96, 0, 24721), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC2_OPTION
+    { PARAM_INDEX(96, 0, 24785), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC3_OPTION
+    { PARAM_INDEX(96, 0, 24849), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC4_OPTION
+    { PARAM_INDEX(96, 0, 24913), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC5_OPTION
+    { PARAM_INDEX(96, 0, 24977), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC6_OPTION
+    { PARAM_INDEX(96, 0, 25041), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC7_OPTION
+    { PARAM_INDEX(96, 0, 25105), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC8_OPTION
+    { PARAM_INDEX(96, 0, 25169), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC9_OPTION
+    { PARAM_INDEX(96, 0, 25233), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC10_OPTION
+    { PARAM_INDEX(96, 0, 25297), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC11_OPTION
+    { PARAM_INDEX(96, 0, 25361), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC12_OPTION
+    { PARAM_INDEX(96, 0, 25425), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC13_OPTION
+    { PARAM_INDEX(96, 0, 25489), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC14_OPTION
+    { PARAM_INDEX(96, 0, 25553), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC15_OPTION
+    { PARAM_INDEX(96, 0, 25617), 0, 104, 1, ParamMetadata::StringValues, ARRAY_SIZE(AUX_OPTIONS), AUX_OPTIONS },  // RC16_OPTION
+
+    { PARAM_INDEX(27, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE1
+    { PARAM_INDEX(28, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE2
+    { PARAM_INDEX(29, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE3
+    { PARAM_INDEX(30, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE4
+    { PARAM_INDEX(31, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE5
+    { PARAM_INDEX(32, 0, 0), 0, 23, 1, ParamMetadata::StringValues, ARRAY_SIZE(FLTMODES), FLTMODES }, // FLTMODE6
+
+    { PARAM_INDEX(96, 0, 36), 0, 3, 1, ParamMetadata::StringValues, ARRAY_SIZE(FS_OPTIONS), FS_OPTIONS }  // FS_OPTIONS
+
 };
+
+#endif
 
 extern const AP_HAL::HAL& hal;
 
