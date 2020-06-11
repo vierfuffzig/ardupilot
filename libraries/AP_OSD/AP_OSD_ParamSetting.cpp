@@ -99,8 +99,8 @@ const AP_Param::GroupInfo AP_OSD_ParamSetting::var_info[] = {
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane) || APM_BUILD_TYPE(APM_BUILD_ArduCopter)
 
 static const char* SERIAL_PROTOCOL_VALUES[] = {
-    "", "MAV", "MAV2", "FSKY_D", "FSKY_S", "GPS", "ALEX", "STORM", "RNG", "FSKY_TX",
-    "LID360", "BEACN", "VOLZ", "SBUS", "ESC_TLM", "DEV_TLM", "OPTFLW", "RBTSRV",
+    "", "MAV", "MAV2", "FSKY_D", "FSKY_S", "GPS", "", "ALEX", "STORM", "RNG", 
+    "FSKY_TX", "LID360", "", "BEACN", "VOLZ", "SBUS", "ESC_TLM", "DEV_TLM", "OPTFLW", "RBTSRV",
     "NMEA", "WNDVNE", "SLCAN", "RCIN", "MGSQRT", "LTM", "RUNCAM", "HOT_TLM", "SCRIPT"
 };
 
