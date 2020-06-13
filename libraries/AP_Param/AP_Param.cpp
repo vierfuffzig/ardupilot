@@ -2519,16 +2519,16 @@ void AP_Param::show(const AP_Param *ap, const char *s,
 {
     switch (type) {
     case AP_PARAM_INT8:
-        port->printf("%s: %d\n", s, (int)((AP_Int8 *)ap)->get());
+        port->printf("| %-16s | %i |\n", s, (int)((AP_Int8 *)ap)->get());
         break;
     case AP_PARAM_INT16:
-        port->printf("%s: %d\n", s, (int)((AP_Int16 *)ap)->get());
+        port->printf("| %-16s | %d |\n", s, (int)((AP_Int16 *)ap)->get());
         break;
     case AP_PARAM_INT32:
-        port->printf("%s: %ld\n", s, (long)((AP_Int32 *)ap)->get());
+        port->printf("| %-16s | %ld |\n", s, (long)((AP_Int32 *)ap)->get());
         break;
     case AP_PARAM_FLOAT:
-        port->printf("%s: %f\n", s, (double)((AP_Float *)ap)->get());
+        port->printf("| %-16s | %f |\n", s, (double)((AP_Float *)ap)->get());
         break;
     default:
         break;
@@ -2551,16 +2551,29 @@ void AP_Param::show_all(AP_HAL::BetterStream *port, bool showKeyValues)
     ParamToken token;
     AP_Param *ap;
     enum ap_var_type type;
+    const bool hide_disable = _hide_disabled_groups;
+
+    _hide_disabled_groups = false;
+    port->printf("\n");
+    if (showKeyValues) {
+        port->printf("|Key|PKey|Index|Group|Name|Value|\n");
+        port->printf("|---|---|---|---|---|---|\n");
+    } else {
+        port->printf("|Name|Value|\n");
+        port->printf("|---|---|\n");
+    }
 
     for (ap=AP_Param::first(&token, &type);
          ap;
          ap=AP_Param::next_scalar(&token, &type)) {
         if (showKeyValues) {
-            port->printf("Key %i: Index %i: GroupElement %i  :  ", token.key, token.idx, token.group_element);
+            port->printf("| %3u | %3u | %2u | %6u ", unsigned(token.key), unsigned(_var_info[token.key].key), unsigned(token.idx), unsigned(token.group_element));
         }
         show(ap, token, type, port);
         hal.scheduler->delay(1);
     }
+
+    _hide_disabled_groups = hide_disable;
 }
 #endif // AP_PARAM_KEY_DUMP
 
