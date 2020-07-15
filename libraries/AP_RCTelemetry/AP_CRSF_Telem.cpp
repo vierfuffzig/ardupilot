@@ -38,6 +38,8 @@
 
 extern const AP_HAL::HAL& hal;
 
+const static int16_t INT_PI = 31415;
+
 AP_CRSF_Telem *AP_CRSF_Telem::singleton;
 
 AP_CRSF_Telem::AP_CRSF_Telem() : AP_RCTelemetry(0)
@@ -126,7 +128,7 @@ bool AP_CRSF_Telem::_process_frame(AP_RCProtocol_CRSF::FrameType frame_type, voi
     switch (frame_type) {
     // this means we are connected to an RC receiver and can send telemetry
     case AP_RCProtocol_CRSF::CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
-    // the EVO sends battery frames and we should send telemetry back to populate the OS
+    // the EVO sends battery frames and we should send telemetry back to populate the OSD
     case AP_RCProtocol_CRSF::CRSF_FRAMETYPE_BATTERY_SENSOR:
         _enable_telemetry = true;
         break;
@@ -381,9 +383,9 @@ void AP_CRSF_Telem::calc_attitude()
     AP_AHRS &_ahrs = AP::ahrs();
     WITH_SEMAPHORE(_ahrs.get_semaphore());
 
-    _telem.bcast.attitude.roll_angle =  htobe16(roundf(_ahrs.roll * 10000.0f));
-    _telem.bcast.attitude.pitch_angle =  htobe16(roundf(_ahrs.pitch * 10000.0f));
-    _telem.bcast.attitude.yaw_angle =  htobe16(roundf(_ahrs.yaw * 10000.0f));
+    _telem.bcast.attitude.roll_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.roll) * 10000.0f), -INT_PI, INT_PI));
+    _telem.bcast.attitude.pitch_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.pitch) * 10000.0f), -INT_PI, INT_PI));
+    _telem.bcast.attitude.yaw_angle = htobe16(constrain_int16(roundf(wrap_PI(_ahrs.yaw) * 10000.0f), -INT_PI, INT_PI));
 
     _telem_size = sizeof(AP_CRSF_Telem::AttitudeFrame);
     _telem_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_ATTITUDE;
