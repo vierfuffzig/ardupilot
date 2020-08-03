@@ -348,7 +348,7 @@ void AP_CRSF_Telem::calc_battery()
 
     _telem.bcast.battery.remaining = _battery.capacity_remaining_pct(0);
 
-    int32_t capacity = _battery.pack_capacity_mah(0);
+    const int32_t capacity = used_mah;
     _telem.bcast.battery.capacity[0] = (capacity & 0xFF0000) >> 16;
     _telem.bcast.battery.capacity[1] = (capacity & 0xFF00) >> 8;
     _telem.bcast.battery.capacity[2] = (capacity & 0xFF);
