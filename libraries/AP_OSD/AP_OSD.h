@@ -332,7 +332,7 @@ public:
 
 private:
     
-    #if APM_BUILD_TYPE(APM_BUILD_ArduCopter) || (CONFIG_HAL_BOARD == HAL_BOARD_SITL && APM_BUILD_TYPE(APM_BUILD_ArduCopter))
+    #if APM_BUILD_TYPE(APM_BUILD_ArduCopter) || CONFIG_HAL_BOARD == HAL_BOARD_SITL && APM_BUILD_TYPE(APM_BUILD_ArduCopter)
     
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
     //  {slot, en, x, y, key, idx , grp}
@@ -347,7 +347,7 @@ private:
         {9, true, 2, 10, 36, 0, 1047, OSD_PARAM_FAILSAFE_ACTION_2 } // BATT_FS_LOW_ACT
     };
     
-    #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane) || (CONFIG_HAL_BOARD == HAL_BOARD_SITL && APM_BUILD_TYPE(APM_BUILD_ArduPlane))
+    #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane) || CONFIG_HAL_BOARD == HAL_BOARD_SITL && APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
     //  {slot, en, x, y, key, idx , grp}
