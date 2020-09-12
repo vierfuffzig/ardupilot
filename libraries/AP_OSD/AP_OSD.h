@@ -330,9 +330,10 @@ public:
     // User settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
+
+#if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
+
 private:
-    
-    #if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
     
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
     //  {slot, en, x, y, key, idx , grp}
@@ -347,7 +348,9 @@ private:
         {9, true, 2, 10, 36, 0, 1047, OSD_PARAM_FAILSAFE_ACTION_2 } // BATT_FS_LOW_ACT
     };
     
-    #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+#elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+
+private:
     
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
     //  {slot, en, x, y, key, idx , grp}
@@ -362,7 +365,7 @@ private:
         {9, true, 2, 10, 9, 0, 9 }       // OSD_FONT
     };
     
-    #endif
+ #endif
 
     void update_state_machine();
     void draw_parameter(uint8_t param_number, uint8_t x, uint8_t y);
