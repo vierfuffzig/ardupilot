@@ -332,24 +332,25 @@ public:
 
 private:
     
-  //  #if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
-    
- //   AP_OSD_ParamSetting params[NUM_PARAMS] = {
-   // {slot no, enable, x, y, key, idx , grp}
-   //     {1, true, 2, 2, 102, 0, 4034 },   // ATC_RAT_PIT_P
-    //    {2, true, 2, 3, 102, 0, 130  },   // ATC_RAT_PIT_D
-    //    {3, true, 2, 4, 102, 0, 4033 },   // ATC_RAT_RLL_P
-     //   {4, true, 2, 5, 102, 0, 129  },   // ATC_RAT_RLL_D
-    //    {5, true, 2, 6, 102, 0, 4035 },   // ATC_RAT_YAW_P
-   //    {6, true, 2, 7, 102, 0, 131  },   // ATC_RAT_YAW_D
-    //    {7, true, 2, 8, 6, 0, 25041, OSD_PARAM_AUX_FUNCTION }, // RC7_OPTION
-    //    {8, true, 2, 9, 6, 0, 25105, OSD_PARAM_AUX_FUNCTION }, // RC8_OPTION
-     //   {9, true, 2, 10, 36, 0, 1047, OSD_PARAM_FAILSAFE_ACTION_2 } // BATT_FS_LOW_ACT
- //   };
-    
-    // #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    #if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
     
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
+    //  {slot, en, x, y, key, idx , grp}
+        {1, true, 2, 2, 102, 0, 4034 },   // ATC_RAT_PIT_P
+        {2, true, 2, 3, 102, 0, 130  },   // ATC_RAT_PIT_D
+        {3, true, 2, 4, 102, 0, 4033 },   // ATC_RAT_RLL_P
+        {4, true, 2, 5, 102, 0, 129  },   // ATC_RAT_RLL_D
+        {5, true, 2, 6, 102, 0, 4035 },   // ATC_RAT_YAW_P
+        {6, true, 2, 7, 102, 0, 131  },   // ATC_RAT_YAW_D
+        {7, true, 2, 8, 6, 0, 25041, OSD_PARAM_AUX_FUNCTION }, // RC7_OPTION
+        {8, true, 2, 9, 6, 0, 25105, OSD_PARAM_AUX_FUNCTION }, // RC8_OPTION
+        {9, true, 2, 10, 36, 0, 1047, OSD_PARAM_FAILSAFE_ACTION_2 } // BATT_FS_LOW_ACT
+    };
+    
+    #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    
+    AP_OSD_ParamSetting params[NUM_PARAMS] = {
+    //  {slot, en, x, y, key, idx , grp}
         {1, true, 2, 2, 232, 0, 1 },     // RLL2SRV_P
         {2, true, 2, 3, 233, 0, 1 },     // PTCH2SRV_P
         {3, true, 2, 4, 4, 0, 1094 },    // SERVO_AUTO_TRIM
@@ -361,7 +362,7 @@ private:
         {9, true, 2, 10, 9, 0, 9 }       // OSD_FONT
     };
     
-   // #endif
+    #endif
 
     void update_state_machine();
     void draw_parameter(uint8_t param_number, uint8_t x, uint8_t y);
