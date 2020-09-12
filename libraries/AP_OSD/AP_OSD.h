@@ -335,6 +335,7 @@ private:
   //  #if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
     
  //   AP_OSD_ParamSetting params[NUM_PARAMS] = {
+   // {slot no, enable, x, y, key, idx , grp}
    //     {1, true, 2, 2, 102, 0, 4034 },   // ATC_RAT_PIT_P
     //    {2, true, 2, 3, 102, 0, 130  },   // ATC_RAT_PIT_D
     //    {3, true, 2, 4, 102, 0, 4033 },   // ATC_RAT_RLL_P
@@ -349,14 +350,14 @@ private:
     // #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
-        {1, true, 2, 2, 1, 0, 232 },     // RLL2SRV_P
-        {2, true, 2, 3, 1, 0, 233 },     // PTCH2SRV_P
-        {3, true, 2, 4, 1094, 0, 4 },    // SERVO_AUTO_TRIM
-        {4, true, 2, 5, 0, 0, 185 },     // TRIM_THROTTLE
-        {5, true, 2, 6, 0, 0, 182 },     // THR_MAX
-        {6, true, 2, 7, 0, 0, 189  },    // THR_SLEWRATE
-        {7, true, 2, 8, 0, 0, 224 },     // WP_LOITER_RAD
-        {8, true, 2, 9, 0, 0, 156 },     // ALT_HOLD_RTL
+        {1, true, 2, 2, 232, 0, 1 },     // RLL2SRV_P
+        {2, true, 2, 3, 233, 0, 1 },     // PTCH2SRV_P
+        {3, true, 2, 4, 4, 0, 1094 },    // SERVO_AUTO_TRIM
+        {4, true, 2, 5, 184, 0, 185 },     // TRIM_THROTTLE
+        {5, true, 2, 6, 182, 0, 182 },     // THR_MAX
+        {6, true, 2, 7, 189, 0, 189  },    // THR_SLEWRATE
+        {7, true, 2, 8, 224, 0, 224 },     // WP_LOITER_RAD
+        {8, true, 2, 9, 156, 0, 156 },     // ALT_HOLD_RTL
         {9, true, 2, 10, 9, 0, 9 }       // OSD_FONT
     };
     
