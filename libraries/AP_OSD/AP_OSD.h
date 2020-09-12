@@ -331,6 +331,9 @@ public:
     static const struct AP_Param::GroupInfo var_info[];
 
 private:
+    
+    #if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
+    
     AP_OSD_ParamSetting params[NUM_PARAMS] = {
         {1, true, 2, 2, 102, 0, 4034 },   // ATC_RAT_PIT_P
         {2, true, 2, 3, 102, 0, 130  },   // ATC_RAT_PIT_D
@@ -342,6 +345,22 @@ private:
         {8, true, 2, 9, 6, 0, 25105, OSD_PARAM_AUX_FUNCTION }, // RC8_OPTION
         {9, true, 2, 10, 36, 0, 1047, OSD_PARAM_FAILSAFE_ACTION_2 } // BATT_FS_LOW_ACT
     };
+    
+    #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    
+    AP_OSD_ParamSetting params[NUM_PARAMS] = {
+        {1, true, 2, 2, 1, 0, 232 },     // RLL2SRV_P
+        {2, true, 2, 3, 1, 0, 233 },     // PTCH2SRV_P
+        {3, true, 2, 4, 1094, 0, 4 },    // SERVO_AUTO_TRIM
+        {4, true, 2, 5, 0, 0, 185 },     // TRIM_THROTTLE
+        {5, true, 2, 6, 0, 0, 182 },     // THR_MAX
+        {6, true, 2, 7, 0, 0, 189  },    // THR_SLEWRATE
+        {7, true, 2, 8, 0, 0, 224 },     // WP_LOITER_RAD
+        {8, true, 2, 9, 0, 0, 156 },     // ALT_HOLD_RTL
+        {9, true, 2, 10, 9, 0, 9 }       // OSD_FONT
+    };
+    
+    #endif
 
     void update_state_machine();
     void draw_parameter(uint8_t param_number, uint8_t x, uint8_t y);
