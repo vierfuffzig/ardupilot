@@ -353,11 +353,11 @@ private:
         {1, true, 2, 2, 232, 0, 1 },     // RLL2SRV_P
         {2, true, 2, 3, 233, 0, 1 },     // PTCH2SRV_P
         {3, true, 2, 4, 4, 0, 1094 },    // SERVO_AUTO_TRIM
-        {4, true, 2, 5, 184, 0, 185 },     // TRIM_THROTTLE
-        {5, true, 2, 6, 182, 0, 182 },     // THR_MAX
-        {6, true, 2, 7, 189, 0, 189  },    // THR_SLEWRATE
-        {7, true, 2, 8, 224, 0, 224 },     // WP_LOITER_RAD
-        {8, true, 2, 9, 156, 0, 156 },     // ALT_HOLD_RTL
+        {4, true, 2, 5, 184, 0, 0 },     // TRIM_THROTTLE
+        {5, true, 2, 6, 182, 0, 0 },     // THR_MAX
+        {6, true, 2, 7, 189, 0, 0  },    // THR_SLEWRATE
+        {7, true, 2, 8, 224, 0, 0 },     // WP_LOITER_RAD
+        {8, true, 2, 9, 156, 0, 0 },     // ALT_HOLD_RTL
         {9, true, 2, 10, 9, 0, 9 }       // OSD_FONT
     };
     
