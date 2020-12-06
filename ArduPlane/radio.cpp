@@ -137,6 +137,7 @@ void Plane::rudder_arm_disarm_check()
     if (auto_throttle_mode &&
         (control_mode != &mode_cruise && control_mode != &mode_fbwb)) {
         rudder_arm_timer = 0;
+        gcs().send_text(MAV_SEVERITY_INFO, "No rudder arming in this flightmode");
         return;      
     }
 
