@@ -1,7 +1,7 @@
 **custom firmware for revomini**
 -----------------------------------
 
-rebased onto ardupilot/master https://github.com/ArduPilot/ardupilot/commit/243cfb5 as of june 12th 2020
+rebased onto ardupilot/master https://github.com/ArduPilot/ardupilot/commit/8fcb033 as of may 1st 2021
 
 RC input on RCInput signal pin 1 (PB14)
 
