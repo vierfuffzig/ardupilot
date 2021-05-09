@@ -127,6 +127,9 @@ define HAL_PROBE_EXTERNAL_I2C_BAROS
 # look for internal I2C compass
 COMPASS HMC5843 I2C:0:0x1E false ROTATION_YAW_270
 
+# look for external I2C compasses
+define HAL_PROBE_EXTERNAL_I2C_COMPASSES
+
 # SD defines
 define HAL_OS_FATFS_IO 1
 define HAL_BOARD_LOG_DIRECTORY "/APM/LOGS"
